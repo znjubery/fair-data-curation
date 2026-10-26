@@ -1,0 +1,1682 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>FAIR Folder Curator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#f2f4ef; --surface:#ffffff; --sunk:#e8ece4; --ink:#1e2922; --muted:#5b685f; --rule:#d5dbd0;
+  --accent:#2f6b4c; --accent-ink:#ffffff; --accent-soft:#dcebe2; --warn:#9a6a12; --warn-soft:#f6ecd6;
+  --bad:#a8443d; --bad-soft:#f5dfdc; --focus:#b07d1f;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121814; --surface:#1a211c; --sunk:#141a16; --ink:#e2e8e0; --muted:#98a69c; --rule:#2c3730;
+    --accent:#6fb58c; --accent-ink:#0e1a13; --accent-soft:#213428; --warn:#d9aa52; --warn-soft:#2e2717;
+    --bad:#e2837a; --bad-soft:#35201e; --focus:#d9aa52; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121814; --surface:#1a211c; --sunk:#141a16; --ink:#e2e8e0; --muted:#98a69c; --rule:#2c3730;
+  --accent:#6fb58c; --accent-ink:#0e1a13; --accent-soft:#213428; --warn:#d9aa52; --warn-soft:#2e2717;
+  --bad:#e2837a; --bad-soft:#35201e; --focus:#d9aa52; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 "IBM Plex Sans",system-ui,sans-serif}
+.app{max-width:1200px;margin:0 auto;padding-inline:16px;padding-block:20px 60px}
+.mono,code,pre,.path{font-family:"IBM Plex Mono",ui-monospace,monospace}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;padding-bottom:16px;border-bottom:1px solid var(--rule)}
+.brand h1{font:800 28px/1.1 Archivo,system-ui,sans-serif;margin:0;letter-spacing:-.01em}
+.brand p{margin:4px 0 0;color:var(--muted);font-size:14px;max-width:60ch}
+nav.steps{display:flex;gap:6px;flex-wrap:wrap}
+nav.steps button{display:flex;align-items:center;gap:8px;border:1px solid var(--rule);background:var(--surface);color:var(--muted);font:500 14px "IBM Plex Sans",sans-serif;padding:7px 12px;border-radius:6px;cursor:pointer}
+nav.steps button b{font:600 12px "IBM Plex Mono",monospace;width:22px;height:22px;display:grid;place-items:center;border-radius:50%;background:var(--sunk);color:var(--muted)}
+nav.steps button[aria-current="step"]{border-color:var(--accent);color:var(--ink)}
+nav.steps button[aria-current="step"] b{background:var(--accent);color:var(--accent-ink)}
+nav.steps button.done b{background:var(--accent-soft);color:var(--accent)}
+main.grid{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:20px;margin-top:20px;align-items:start}
+@media (max-width:900px){main.grid{grid-template-columns:1fr}}
+.step h2{font:600 22px/1.2 Archivo,system-ui,sans-serif;margin:0 0 4px;text-wrap:balance}
+.step .lede{color:var(--muted);margin:0 0 16px;max-width:70ch}
+.panel{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:16px}
+.stack{display:grid;gap:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.spread{justify-content:space-between}
+button.btn{font:600 14px "IBM Plex Sans",sans-serif;border-radius:6px;padding:9px 14px;cursor:pointer;border:1px solid var(--rule);background:var(--surface);color:var(--ink)}
+button.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button.btn:disabled{opacity:.5;cursor:not-allowed}
+button.link{background:none;border:0;color:var(--accent);font:inherit;cursor:pointer;padding:0;text-decoration:underline}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.drop{display:grid;place-items:center;text-align:center;gap:8px;border:2px dashed var(--rule);border-radius:10px;padding:32px 16px;background:var(--sunk);cursor:pointer}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop strong{font:600 17px Archivo,sans-serif}
+.drop small{color:var(--muted);max-width:52ch}
+.banner{border-radius:6px;padding:10px 12px;font-size:14px;background:var(--warn-soft);color:var(--ink);border:1px solid var(--rule)}
+.banner b{color:var(--warn)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.stat{background:var(--sunk);border-radius:6px;padding:10px}
+.stat .v{font:600 20px "IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.stat .k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.extbar{display:flex;height:12px;border-radius:3px;overflow:hidden;background:var(--sunk)}
+.extbar i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font:12px "IBM Plex Mono",monospace;color:var(--muted)}
+.legend em{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.tw{overflow-x:auto;border:1px solid var(--rule);border-radius:6px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th{text-align:left;font:600 12px "IBM Plex Sans",sans-serif;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--sunk);padding:8px;border-bottom:1px solid var(--rule);white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid var(--rule);vertical-align:top;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+td .path{font-size:12.5px;word-break:break-all}
+#clusterPreview td:first-child,#clusterPreview td:nth-child(2){min-width:120px}
+td input,td select{width:100%;min-width:110px}
+#planTable input[data-f=folder]{min-width:210px}
+#planTable input[data-f=dtype]{min-width:140px}
+.tw table.plan{min-width:1080px}
+.num{text-align:right;white-space:nowrap}
+label.f{display:grid;gap:4px;font-size:13px;font-weight:500}
+label.f span.h{font-weight:400;color:var(--muted);font-size:12px}
+input[type=text],input[type=date],input[type=search],select,textarea{font:14px "IBM Plex Sans",sans-serif;color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:5px;padding:7px 9px;width:100%}
+td input[type=text],td select{font-size:13px;padding:5px 7px;font-family:"IBM Plex Mono",monospace}
+textarea{min-height:64px;resize:vertical}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
+.form .wide{grid-column:1/-1}
+@media (max-width:640px){.form{grid-template-columns:1fr}}
+.guess input,.guess textarea,.guess select{border-color:var(--warn);background:var(--warn-soft)}
+.tag{font:500 11px "IBM Plex Mono",monospace;padding:2px 6px;border-radius:10px;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn);margin-left:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:13px "IBM Plex Sans",sans-serif;border:1px solid var(--rule);border-radius:14px;padding:4px 10px;background:var(--surface);color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.q{border-left:3px solid var(--accent);padding:8px 0 8px 12px;display:grid;gap:6px}
+.q p{margin:0}
+.q .why{font-size:12.5px;color:var(--muted)}
+.status{font-size:13px;color:var(--muted)}
+.status.err{color:var(--bad)}
+.pill{font:500 11px "IBM Plex Mono",monospace;padding:2px 7px;border-radius:10px;white-space:nowrap}
+.pill.raw{background:var(--accent-soft);color:var(--accent)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.tree{font:13px/1.6 "IBM Plex Mono",monospace;max-height:420px;overflow:auto;background:var(--sunk);border-radius:6px;padding:10px 12px}
+.tree details{margin-left:14px}
+.tree summary{cursor:pointer}
+.tree .c{color:var(--muted)}
+.map{font:12.5px/1.5 "IBM Plex Mono",monospace;max-height:300px;overflow:auto}
+.map div{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;padding:4px 0;border-bottom:1px solid var(--rule);word-break:break-all}
+.map .arrow{color:var(--muted)}
+@media (max-width:640px){.map div{grid-template-columns:1fr}.map .arrow{display:none}}
+.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);display:grid;gap:12px}
+@media (max-width:900px){.rail{position:static}}
+.rail h3{font:600 13px "IBM Plex Sans",sans-serif;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:0 0 8px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:13px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;text-align:right;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:var(--muted)}
+.dot.on{background:var(--accent)} .dot.off{background:var(--bad)}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--rule)}
+.tabs button{border:0;background:none;font:500 13px "IBM Plex Mono",monospace;padding:8px 10px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+pre.preview{margin:0;max-height:420px;overflow:auto;background:var(--sunk);padding:12px;border-radius:0 0 6px 6px;font-size:12.5px;line-height:1.5;white-space:pre}
+.fair td,.fair th{text-align:center}.fair td:first-child,.fair th:first-child{text-align:left}
+.sc{font-family:"IBM Plex Mono",monospace;border-radius:4px;padding:1px 6px}
+.s0{background:var(--bad-soft);color:var(--bad)} .s5{background:var(--warn-soft);color:var(--warn)} .s1{background:var(--accent-soft);color:var(--accent)}
+.checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}
+.check{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--rule);border-radius:6px;padding:10px;background:var(--surface);cursor:pointer}
+.check input{margin-top:3px}
+.check b{display:block;font-size:14px}
+.check span{font-size:12.5px;color:var(--muted)}
+.cmd{display:flex;gap:8px;align-items:center;background:var(--sunk);border-radius:6px;padding:8px 10px;font:12.5px "IBM Plex Mono",monospace;overflow-x:auto}
+.cmd code{white-space:nowrap;flex:1}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:no-preference){.step{animation:fade .18s ease-out}@keyframes fade{from{opacity:.4}to{opacity:1}}}
+</style>
+<div class="app">
+<header class="top">
+  <div class="brand">
+    <h1>FAIR Folder Curator</h1>
+    <p>Turn a messy data folder into a clean, documented dataset. A data-curator agent asks what it needs, proposes a layout, and hands you a script that copies your files into it.</p>
+  </div>
+  <nav class="steps" aria-label="Steps">
+    <button data-go="1"><b>1</b>Load folder</button>
+    <button data-go="2"><b>2</b>Interview</button>
+    <button data-go="3"><b>3</b>Plan</button>
+    <button data-go="4"><b>4</b>Export</button>
+  </nav>
+</header>
+<main class="grid">
+<div>
+  <!-- STEP 1 -->
+  <section class="step" id="s1">
+    <h2>Load the messy folder</h2>
+    <p class="lede">The app reads file names, sizes and dates, and (if you ask) the metadata headers inside files. Everything is read on this computer; no file is uploaded. Names and short header summaries go to Claude only when you press a curator button.</p>
+    <div class="stack">
+      <label class="drop" id="drop" for="pick">
+        <strong>Drop a folder here, or click to choose one</strong>
+        <small>Works with thousands of files. Nothing is moved until you run the script at the end.</small>
+      </label>
+      <input type="file" id="pick" webkitdirectory directory multiple hidden>
+      <div class="banner" id="sampleBanner" hidden><b>Example folder loaded.</b> This is a made-up messy maize drone folder so you can see how the app works. Load your own folder above to replace it.</div>
+      <div class="panel stack" id="scanPanel">
+        <div class="row spread"><strong id="rootName">Folder</strong><button class="link" id="loadSample">Load example folder</button></div>
+        <div class="stats" id="stats"></div>
+        <div class="extbar" id="extbar"></div>
+        <div class="legend" id="extlegend"></div>
+      </div>
+      <div class="panel stack">
+        <div class="row spread"><strong>Metadata inside the files</strong><div class="row"><button class="btn primary" id="scanMeta">Read embedded metadata</button><button class="btn" id="stopMeta" hidden>Stop</button></div></div>
+        <p class="status" id="metaMsg" style="margin:0"></p>
+        <progress id="metaProg" hidden style="width:100%"></progress>
+        <div class="stats" id="metaFacts"></div>
+        <div class="tw"><table><thead><tr><th>What was read</th><th class="num">Files</th><th>Summary</th></tr></thead><tbody id="metaTable"></tbody></table></div>
+        <p class="status" style="margin:0">Photos: capture time, camera, GPS, flight height, gimbal angle, RTK, band (DJI XMP). LiDAR: point count, bounds, CRS/EPSG, software. Hyperspectral: bands, wavelengths, size, acquisition date. Also PLY/3DGS, VCF, table columns, Office authors, DJI trigger logs. Capture dates feed the session calendar.</p>
+      </div>
+      <div class="panel stack">
+        <strong>Groups of similar files</strong>
+        <p class="status" style="margin:0">Files with the same folder, type and name pattern (digits shown as #) are grouped. The plan works on these groups.</p>
+        <div class="tw"><table><thead><tr><th>Folder</th><th>Pattern</th><th class="num">Files</th><th class="num">Size</th><th>Inside files</th><th>Flags</th></tr></thead><tbody id="clusterPreview"></tbody></table></div>
+      </div>
+      <div class="row"><button class="btn primary" data-go="2">Next: interview</button></div>
+    </div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="step" id="s2" hidden>
+    <h2>Curator interview</h2>
+    <p class="lede">Fill in what you know. Then ask the curator to read the file names: it suggests answers it can see evidence for (marked <span class="tag">guess</span>) and asks follow-up questions about the rest.</p>
+    <div class="stack">
+      <div class="panel stack">
+        <div class="row spread">
+          <strong>Ask the curator</strong>
+          <div class="row"><button class="btn primary" id="askCurator">Review my folder</button><button class="btn" id="stopCurator" hidden>Stop</button></div>
+        </div>
+        <p class="status" id="curatorMsg">The curator reads the grouped file names and your answers, then asks 3–7 questions.</p>
+        <ul id="observations" class="status" style="margin:0;padding-left:18px"></ul>
+        <div id="followups" class="stack"></div>
+      </div>
+      <div class="panel"><div class="form" id="form"></div></div>
+      <div class="row"><button class="btn" data-go="1">Back</button><button class="btn primary" data-go="3">Next: plan</button></div>
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="step" id="s3" hidden>
+    <h2>Plan the new layout</h2>
+    <p class="lede">Each group gets a category, a data type and a target folder. Start from the quick rules, or have the curator plan it using your answers. Edit anything in the table.</p>
+    <div class="stack">
+      <div class="panel stack">
+        <div class="row spread">
+          <div class="row"><button class="btn primary" id="planCurator">Plan with curator</button><button class="btn" id="planRules">Reset to rules</button><button class="btn" id="stopPlan" hidden>Stop</button></div>
+          <span class="status" id="planMsg">Using quick rules based on file types and names.</span>
+        </div>
+        <p class="status" id="planSummary" hidden></p>
+        <div class="form">
+          <label class="f">File name template <span class="h">Tokens: {session} {date} {site} {dtype} {plot} {seq} {stem} {project}. Used when a group is set to "template".</span><input type="text" id="tpl" class="mono"></label>
+          <label class="f">Options<span class="h">Applies to every group</span>
+            <span class="row"><label class="row" style="gap:6px"><input type="checkbox" id="numbered"> Number folders in reading order and sessions by date (01_, 02_…)</label></span>
+            <span class="row"><label class="row" style="gap:6px"><input type="checkbox" id="strip"> Remove "final", "copy", "(1)" from names</label></span>
+            <span class="row"><label class="row" style="gap:6px"><input type="checkbox" id="dupReview"> Put likely duplicates in <code>_review/duplicates</code></label></span>
+          </label>
+        </div>
+      </div>
+      <div class="tw"><table class="plan"><thead><tr><th>Group (examples)</th><th class="num">Files</th><th>Category</th><th>Data type</th><th>Target folder</th><th>Names</th><th>Date from</th><th>Include</th></tr></thead><tbody id="planTable"></tbody></table></div>
+      <div class="panel stack">
+        <div class="row spread"><strong>Session calendar</strong><span class="status">Each field day gets one number, shared by every sensor</span></div>
+        <div class="tw"><table><thead><tr><th>Session</th><th>Date</th><th>Data collected</th></tr></thead><tbody id="sessions"></tbody></table></div>
+      </div>
+      <div class="panel stack">
+        <div class="row spread"><strong>New folder tree</strong><span class="status" id="treeStats"></span></div>
+        <div class="tree" id="tree"></div>
+      </div>
+      <div class="panel stack">
+        <div class="row spread"><strong>Old name → new name</strong><input type="search" id="mapFilter" placeholder="Filter by name" style="max-width:240px"></div>
+        <div class="map" id="map"></div>
+      </div>
+      <div class="row"><button class="btn" data-go="2">Back</button><button class="btn primary" data-go="4">Next: export</button></div>
+    </div>
+  </section>
+
+  <!-- STEP 4 -->
+  <section class="step" id="s4" hidden>
+    <h2>Export the organize kit</h2>
+    <p class="lede">Choose what to generate. The kit is one zip with <code>organize.py</code> (Python 3, no installs) and the files you picked. The script copies files by default, so your originals stay where they are.</p>
+    <div class="stack">
+      <div class="checks" id="outChecks"></div>
+      <div class="panel stack">
+        <div class="row spread"><strong>FAIR score</strong><span class="status">15 sub-principles scored 0, 0.5 or 1</span></div>
+        <div class="tw"><table class="fair" id="fairTable"></table></div>
+        <p class="status" style="margin:0">"After deposit" assumes you upload the organized folder to a repository that gives a DOI (ISU DataShare, Zenodo, CyVerse). It is a projection, not a measurement.</p>
+      </div>
+      <div class="panel stack">
+        <div class="row spread"><strong>Get the kit</strong><div class="row"><button class="btn primary" id="saveZip">Download kit (.zip)</button><button class="btn" id="copyScript">Copy organize.py</button></div></div>
+        <p class="status" id="saveMsg"></p>
+        <div class="stack" id="howto"></div>
+      </div>
+      <div class="panel" style="padding:0">
+        <div class="tabs" role="tablist" id="tabs"></div>
+        <pre class="preview" id="preview"></pre>
+        <div class="row" style="padding:8px 12px"><button class="btn" id="copyTab">Copy this file</button><span class="status" id="tabNote"></span></div>
+      </div>
+      <div class="row"><button class="btn" data-go="3">Back</button></div>
+    </div>
+  </section>
+</div>
+
+<aside class="rail">
+  <div class="panel">
+    <h3>Dataset</h3>
+    <dl class="kv" id="railStats"></dl>
+  </div>
+  <div class="panel">
+    <h3>Curator</h3>
+    <p class="status" style="margin:0" id="railCurator"><span class="dot"></span>Checking…</p>
+  </div>
+  <div class="panel">
+    <h3>FAIR estimate</h3>
+    <dl class="kv" id="railFair"></dl>
+  </div>
+</aside>
+</main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exifr@7.1.3/dist/full.umd.js"></script>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtBytes = b => { if (!b) return "0 B"; const u=["B","KB","MB","GB","TB"]; let i=0; while (b>=1000 && i<u.length-1){b/=1000;i++;} return (b>=100||i===0?b.toFixed(0):b.toFixed(1))+" "+u[i]; };
+const fmtN = n => n.toLocaleString("en-US");
+
+// ---------------- state ----------------
+const S = {
+  rootName: "dataset", files: [], clusters: [], rows: [], isSample: false,
+  answers: {}, guessed: new Set(), followups: [], observations: [],
+  settings: { template: "{session}_{date}_{site}_{dtype}_{stem}", strip: true, dupReview: true, numbered: true }, sessions: [],
+  outputs: { readme: true, miappe: true, croissant: true, fair: true, embedded: true, checksum: false },
+  planSource: "rules", planSummary: "", dtypeDesc: {}, step: 1
+};
+let sampleFn = null, downloadsNs = null, curatorCtl = null, planCtl = null;
+
+const LS_KEY = "ffc.v1";
+function saveLocal(){ try { localStorage.setItem(LS_KEY, JSON.stringify({answers:S.answers, settings:S.settings, outputs:S.outputs})); } catch {} }
+function loadLocal(){ try { const d = JSON.parse(localStorage.getItem(LS_KEY) || "null"); if (d){ Object.assign(S.answers, d.answers||{}); Object.assign(S.settings, d.settings||{}); Object.assign(S.outputs, d.outputs||{}); } } catch {} }
+
+// ---------------- file analysis ----------------
+const COMPOUND = [".tar.gz",".vcf.gz",".fastq.gz",".fq.gz",".nii.gz",".csv.gz",".txt.gz",".hmp.txt"];
+function splitExt(name){
+  const l = name.toLowerCase();
+  for (const c of COMPOUND) if (l.endsWith(c) && l.length > c.length) return [name.slice(0, -c.length), c];
+  const i = name.lastIndexOf(".");
+  if (i <= 0) return [name, ""];
+  return [name.slice(0, i), name.slice(i).toLowerCase()];
+}
+const JUNK = /^(\.ds_store|thumbs\.db|ehthumbs\.db|desktop\.ini|\.localized|icon\r?)$|^~\$|^\._|\.tmp$|^\.~lock|\.crdownload$|\.part$/i;
+function analyzeFile(f, i){
+  const parts = f.path.split("/");
+  const name = parts.pop();
+  const dir = parts.join("/");
+  const [stem, ext] = splitExt(name);
+  const junk = JUNK.test(name) || /(^|\/)(\.git|__pycache__|\.ipynb_checkpoints|\$recycle\.bin)(\/|$)/i.test(dir);
+  return { i, path: f.path, dir, name, stem, ext, size: f.size || 0, mtime: f.mtime || 0, junk, dupOf: null, file: f.file || null };
+}
+function normKey(stem){ return cleanStem(stem, true).toLowerCase().replace(/[-_\s.]+/g, "_"); }
+function markDuplicates(){
+  const seen = new Map();
+  for (const f of S.files){
+    if (f.junk) continue;
+    const k = normKey(f.stem) + "|" + f.ext + "|" + f.size;
+    if (seen.has(k)) f.dupOf = seen.get(k).path; else seen.set(k, f);
+  }
+}
+const patternOf = stem => stem.replace(/\d+/g, "#");
+function buildClusters(){
+  const live = S.files.filter(f => !f.junk);
+  const keyers = [
+    f => f.dir + "\u0000" + f.ext + "\u0000" + patternOf(f.stem),
+    f => f.dir + "\u0000" + f.ext,
+    f => f.dir.split("/")[0] + "\u0000" + f.ext,
+    f => f.ext
+  ];
+  let groups;
+  for (const kf of keyers){
+    groups = new Map();
+    for (const f of live){ const k = kf(f); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(f); }
+    if (groups.size <= 150) break;
+  }
+  const old = new Map(S.clusters.map(c => [c.key, c]));
+  S.clusters = [...groups.entries()].map(([key, fs], n) => {
+    fs.sort((a,b) => a.path.localeCompare(b.path));
+    const f0 = fs[0];
+    const c = { id: "g" + (n+1), key, dir: f0.dir, ext: f0.ext, pattern: patternOf(f0.stem) + f0.ext,
+      files: fs, count: fs.length, bytes: fs.reduce((s,f) => s + f.size, 0),
+      examples: [...new Set(fs.map(f => f.name))].slice(0, 3), dups: fs.filter(f => f.dupOf).length };
+    for (const f of fs) f.cluster = c;
+    Object.assign(c, guess(c));
+    return c;
+  }).sort((a,b) => a.dir.localeCompare(b.dir) || a.pattern.localeCompare(b.pattern));
+  S.clusters.forEach((c, n) => c.id = "g" + (n+1));
+}
+
+// ---------------- rules classifier ----------------
+const has = (e, list) => list.includes(e);
+function guess(cl){
+  const t = (cl.dir + "/" + cl.examples.join(" ")).toLowerCase();
+  const e = cl.ext;
+  const R = (cat, dtype, dated) => ({ cat, dtype, folder: cat + "/" + dtype + (dated ? "/{date}" : ""), rename: "keep", dateSrc: "name", exclude: false, note: "" });
+  if (/calib|panel|reflectance.?target|white.?ref|dark.?ref/.test(t)) return R("metadata", "calibration");
+  if (/^readme|license|licence/.test(cl.examples[0]?.toLowerCase() || "")) return R("docs", "notes");
+  if (has(e, [".las",".laz",".e57",".ldr"])) return /merged|clean|classif|filter|processed|final/.test(t) ? R("processed","lidar_processed") : R("raw","lidar",true);
+  if (has(e, [".ply",".pcd",".xyz",".pts"])) return R("processed", /splat|gauss|3dgs/.test(t) ? "gaussian_splats" : "point_clouds");
+  if (has(e, [".obj",".glb",".gltf",".stl",".fbx",".mtl"])) return R("processed","meshes");
+  if (has(e, [".hdr",".bil",".bip",".bsq",".envi",".cue"]) || (/hsi|hyper|spectral|hinalea|specim|resonon/.test(t) && has(e,[".raw",".h5",".hdf5",".tif",".tiff",".dat"]))) return R("raw","hyperspectral",true);
+  if (has(e, [".tif",".tiff"]) && /ortho|mosaic|dsm|dem|dtm|ndvi|index|chm/.test(t)) return R("processed","orthomosaics");
+  if (has(e, [".jpg",".jpeg",".dng",".tif",".tiff",".png"]) && /dji|uav|drone|flight|mavic|phantom|m300|m350|m3m|p4|altum|micasense/.test(t))
+    return R("raw", (/_ms_|multispec|nir|rededge|altum|micasense/.test(t) && has(e,[".tif",".tiff"])) ? "uav_multispectral" : "uav_rgb", true);
+  if (has(e, [".mrk",".obs",".nav",".rtk",".rtb",".rpos",".imu",".clc",".cli",".sig",".bin"])) return R("raw","flight_logs",true);
+  if (has(e, [".jpg",".jpeg",".png",".heic",".dng",".tif",".tiff",".bmp",".cr2",".cr3",".nef",".arw"])) return R("raw", /turntable|ear|cob|kernel|tassel/.test(t) ? "turntable_images" : "photos", true);
+  if (has(e, [".mp4",".mov",".avi",".mkv"])) return R("raw","video",true);
+  if (has(e, [".vcf",".vcf.gz",".hmp",".hmp.txt",".bed",".bim",".fam",".ped"]) || (/snp|genotyp|hapmap/.test(t) && has(e,[".txt",".csv",".tsv"]))) return R("raw","genotypes");
+  if (has(e, [".fastq",".fq",".fastq.gz",".fq.gz",".bam",".sam",".cram"])) return R("raw","sequences");
+  if (has(e, [".csv",".tsv",".xlsx",".xls",".parquet",".txt",".csv.gz",".ods"])){
+    if (/map|layout|design|field.?book|plot.?list|randomi|planting/.test(t)) return R("metadata","field_design");
+    if (/weather|climate|temp|rain|mesonet/.test(t)) return R("raw","weather");
+    return R("results","trait_tables");
+  }
+  if (has(e, [".py",".ipynb",".r",".rmd",".m",".sh",".cpp",".c",".h",".js",".jl",".sbatch",".slurm",".bat",".ps1"])) return R("code","scripts");
+  if (has(e, [".pdf",".docx",".doc",".md",".pptx",".ppt",".odt",".rtf",".key"])) return R("docs","notes");
+  if (has(e, [".json",".yaml",".yml",".xml",".cfg",".ini",".toml"])) return /transforms|colmap|cameras|poses|nerf|splat/.test(t) ? R("processed","3d_reconstruction") : R("metadata","config");
+  if (has(e, [".npy",".npz",".pt",".pth",".ckpt",".onnx",".pkl",".h5",".hdf5",".safetensors"])) return R("results","models");
+  if (has(e, [".zip",".tar",".tar.gz",".7z",".rar",".gz"])) return R("archive","archives");
+  return R("other","unsorted");
+}
+const CATS = ["docs","metadata","raw","processed","results","code","archive","other"];
+const DT_DESC = {
+  uav_rgb:"RGB images from UAV flights, one folder per flight date.", uav_multispectral:"Multispectral UAV band images.",
+  lidar:"Raw LiDAR point clouds (LAS/LAZ or sensor-native files) per flight date.", lidar_processed:"Merged, cleaned or classified LiDAR point clouds.",
+  flight_logs:"UAV flight, RTK and timestamp logs that belong with the images of the same date.", hyperspectral:"Hyperspectral image cubes (ENVI header + data).",
+  orthomosaics:"Orthomosaics, surface models and index maps made from UAV images.", point_clouds:"Point clouds from reconstruction (SfM, NeRF, 3DGS).",
+  gaussian_splats:"Gaussian splat reconstructions.", meshes:"3D meshes.", "3d_reconstruction":"Camera poses and reconstruction settings.",
+  turntable_images:"Lab / turntable images of plant organs.", photos:"Hand-held or phone photos.", video:"Video recordings.",
+  genotypes:"Genotype calls (VCF, HapMap, PLINK).", sequences:"Sequencing reads or alignments.", trait_tables:"Trait and measurement tables.",
+  field_design:"Field maps, plot lists and experimental design.", weather:"Weather and environment records.", scripts:"Analysis and processing code.",
+  notes:"Notes, reports and documentation.", config:"Configuration and settings files.", calibration:"Calibration panel and reference data.",
+  models:"Trained models and numeric arrays.", archives:"Compressed archives (not unpacked).", unsorted:"Files the rules could not identify. Review these."
+};
+
+// ---------------- names, dates ----------------
+const MON = {jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,sept:9,oct:10,nov:11,dec:12};
+const pad2 = n => String(n).padStart(2, "0");
+function findDate(s){
+  let m = s.match(/(?<!\d)(20[0-3]\d)[-_.]?(0[1-9]|1[0-2])[-_.]?(0[1-9]|[12]\d|3[01])/);
+  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  const yr = (S.answers.year || "").match(/20[0-3]\d/)?.[0];
+  if (!yr) return null;
+  m = s.match(/(?<![a-z])(jan|feb|mar|apr|may|jun|jul|aug|sept|sep|oct|nov|dec)[a-z]*[\s_-]*(\d{1,2})(?!\d)/i);
+  if (m && +m[2] >= 1 && +m[2] <= 31) return `${yr}-${pad2(MON[m[1].toLowerCase()])}-${pad2(m[2])}`;
+  m = s.match(/(?<!\d)(\d{1,2})[\s_-]*(jan|feb|mar|apr|may|jun|jul|aug|sept|sep|oct|nov|dec)[a-z]*(?![a-z])/i);
+  if (m && +m[1] >= 1 && +m[1] <= 31) return `${yr}-${pad2(MON[m[2].toLowerCase()])}-${pad2(m[1])}`;
+  return null;
+}
+function fileDate(f, src){
+  if (src === "none") return null;
+  if (src === "modified") return f.mtime ? new Date(f.mtime).toISOString().slice(0, 10) : null;
+  if (src === "embedded") return embeddedDate(f) || findDate(f.name) || findDate(f.dir);
+  return findDate(f.name) || findDate(f.dir) || embeddedDate(f);
+}
+const findPlot = s => { const m = s.match(/(?<![a-z])(?:plot|plt|p)[-_ ]?(\d{2,5})(?!\d)/i); return m ? "p" + m[1].padStart(4, "0") : null; };
+function cleanStem(stem, forceStrip){
+  let s = stem.normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+  if (forceStrip || S.settings.strip){
+    s = s.replace(/\s*[\(\[](copy|\d+)[\)\]]\s*$/i, "").replace(/\s+-\s+copy(\s*\(\d+\))?$/i, "");
+    for (let k = 0; k < 2; k++) s = s.replace(/(^|[\s_-])(final|real|copy|new|latest)(?=$|[\s_-])/gi, "$1");
+  }
+  s = s.replace(/[^A-Za-z0-9.-]+/g, "_").replace(/([_.-])\1+/g, "$1").replace(/[_-]{2,}/g, "_").replace(/^[_.-]+|[_.-]+$/g, "");
+  return s || "file";
+}
+const seg = s => String(s).toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9._-]+/g, "_").replace(/_+/g, "_").replace(/^[_.]+|[_.]+$/g, "");
+const slug = s => seg(s).replace(/[._]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+function cleanFolder(folder){
+  return String(folder || "").split("/").map(p => p.trim()).filter(p => p && p !== "." && p !== "..")
+    .map(p => p.split(/(\{date\}|\{plot\})/).map(x => /^\{(date|plot)\}$/.test(x) ? x : seg(x)).join(""))
+    .filter(Boolean).join("/");
+}
+function fillTpl(tpl, tok){
+  let s = tpl.replace(/\{(\w+)\}/g, (m, k) => tok[k] ?? "");
+  return s.replace(/[_-]{2,}/g, "_").replace(/^[_-]+|[_-]+$/g, "") || tok.stem || "file";
+}
+
+// ---------------- plan ----------------
+// Reading order for a newcomer: docs -> metadata -> raw -> processed -> results -> code
+const CAT_NUM = { docs: "00", metadata: "01", raw: "02", processed: "03", results: "04", code: "05", archive: "90", other: "98" };
+const DT_ORDER = ["field_design","calibration","config",
+  "uav_rgb","uav_multispectral","flight_logs","lidar","hyperspectral","turntable_images","photos","video","weather","genotypes","sequences",
+  "orthomosaics","lidar_processed","3d_reconstruction","point_clouds","gaussian_splats","meshes",
+  "trait_tables","models","scripts","notes","archives","unsorted"];
+const dtRank = d => { const i = DT_ORDER.indexOf(d); return i < 0 ? 500 : i; };
+const isDate = x => /^\d{4}-\d{2}-\d{2}$/.test(x);
+function buildPlan(){
+  const site = slug(S.answers.site_code || "");
+  const project = slug(S.answers.title || S.rootName).slice(0, 40);
+  const num = S.settings.numbered;
+  const rows = [], pending = [];
+  for (const f of S.files.filter(f => f.junk)) rows.push({ old: f.path, new: null, size: f.size, action: "skip:junk" });
+  // pass 1: raw folder per file, collect dates and data-type folders
+  const dates = new Set(), subs = new Map();
+  for (const c of S.clusters){
+    const ordered = [...c.files].map(f => ({ f, d: fileDate(f, c.dateSrc) }))
+      .sort((a, b) => (a.d || "9999").localeCompare(b.d || "9999") || (a.f.mtime - b.f.mtime) || a.f.path.localeCompare(b.f.path));
+    const seqs = new Map();
+    for (const { f, d } of ordered){
+      if (c.exclude){ rows.push({ old: f.path, new: null, size: f.size, action: "skip:excluded" }); continue; }
+      const plot = findPlot(f.name) || findPlot(f.dir);
+      const seq = (seqs.get(d || "") || 0) + 1; seqs.set(d || "", seq);
+      const folder = (c.folder || `${c.cat}/${c.dtype}`).replace(/\{date\}/g, d || "undated").replace(/\{plot\}/g, plot || "no-plot");
+      const parts = folder.split("/").filter(Boolean);
+      parts.forEach(x => { if (isDate(x)) dates.add(x); });
+      if (parts.length > 1 && CAT_NUM[parts[0]]){ if (!subs.has(parts[0])) subs.set(parts[0], new Set()); subs.get(parts[0]).add(parts[1]); }
+      pending.push({ f, c, d, plot, seq, parts });
+    }
+  }
+  // numbering tables
+  const sessionOf = new Map([...dates].sort().map((d, i) => [d, String(i + 1).padStart(2, "0")]));
+  const subNum = new Map();
+  for (const [cat, set] of subs){
+    [...set].sort((a, b) => dtRank(a) - dtRank(b) || a.localeCompare(b)).forEach((x, i) => subNum.set(cat + "/" + x, String(i + 1).padStart(2, "0")));
+  }
+  S.sessions = [...sessionOf.entries()].map(([date, n]) => ({ n, date, dtypes: new Set() }));
+  const sessIdx = new Map(S.sessions.map(x => [x.date, x]));
+  const numberParts = parts => !num ? parts : parts.map((x, i) => {
+    if (i === 0 && CAT_NUM[x]) return `${CAT_NUM[x]}_${x}`;
+    if (i === 1 && subNum.has(parts[0] + "/" + x)) return `${subNum.get(parts[0] + "/" + x)}_${x}`;
+    if (isDate(x)) return `${sessionOf.get(x)}_${x}`;
+    if (x === "undated") return "99_undated";
+    return x;
+  });
+  // pass 2: names
+  const used = new Set();
+  const claim = p => {
+    let cand = p, n = 2;
+    const dot = p.lastIndexOf("."), slash = p.lastIndexOf("/");
+    const base = dot > slash ? p.slice(0, dot) : p, ext = dot > slash ? p.slice(dot) : "";
+    while (used.has(cand.toLowerCase())) cand = `${base}_${n++}${ext}`;
+    used.add(cand.toLowerCase()); return cand;
+  };
+  for (const { f, c, d, plot, seq, parts } of pending){
+    let segs = numberParts(parts);
+    if (f.dupOf && S.settings.dupReview) segs = [num ? "99_review" : "_review", "duplicates", ...segs];
+    const sess = d ? "s" + sessionOf.get(d) : "";
+    if (d && parts.includes(d)) sessIdx.get(d)?.dtypes.add(seg(c.dtype));
+    const stem = cleanStem(f.stem);
+    const tok = { date: d ? d.replace(/-/g, "") : "", session: sess, site, dtype: seg(c.dtype), plot: plot || "", seq: String(seq).padStart(4, "0"), stem, project };
+    const name = c.rename === "keep" ? stem : c.rename === "seq" ? fillTpl("{session}_{date}_{site}_{dtype}_{plot}_{seq}", tok) : fillTpl(S.settings.template, tok);
+    const newPath = claim(segs.join("/") + "/" + name + f.ext);
+    rows.push({ old: f.path, new: newPath, size: f.size, action: "copy", dtype: seg(c.dtype), cat: c.cat, dup: !!f.dupOf });
+  }
+  S.rows = rows;
+}
+
+// ---------------- sample folder ----------------
+function sampleFolder(){
+  const L = []; const R = "Maize drone stuff 2025/";
+  const add = (p, s, m) => L.push({ path: R + p, size: Math.round(s), mtime: m || Date.parse("2025-09-03T12:00:00") });
+  const p4 = i => String(i).padStart(4, "0");
+  for (let i = 1; i <= 120; i++) add(`flight july 14/DJI_20250714101502_${p4(i)}_D.JPG`, 7.6e6 + (i * 37 % 500) * 1e3, Date.parse("2025-07-14T10:15:00"));
+  add("flight july 14/DJI_202507141015_001_Timestamp.MRK", 4.8e4, Date.parse("2025-07-14T10:40:00"));
+  add("flight july 14/Thumbs.db", 2.0e4);
+  for (let i = 1; i <= 96; i++) add(`flight 2 aug/DJI_20250802093011_${p4(i)}_D.JPG`, 7.9e6 + (i * 53 % 400) * 1e3, Date.parse("2025-08-02T09:30:00"));
+  for (let i = 1; i <= 24; i++) add(`flight 2 aug/DJI_20250802093011_${p4(i)}_MS_NIR.TIF`, 2.6e6, Date.parse("2025-08-02T09:30:00"));
+  add("lidar/zenmuse L2 0714/cloud_merged FINAL.las", 2.1e9);
+  add("lidar/zenmuse L2 0714/DJI_20250714104410_0001.LDR", 1.4e9, Date.parse("2025-07-14T10:44:00"));
+  add("lidar/zenmuse L2 0714/DJI_20250714104410_0001.RTK", 3.1e5, Date.parse("2025-07-14T10:44:00"));
+  add("lidar/lidar_aug2_v3_REAL.laz", 6.4e8); add("lidar/lidar_aug2_v3_REAL (1).laz", 6.4e8);
+  for (let p = 201; p <= 212; p++) for (let r = 1; r <= 2; r++){ add(`hsi/turntable ear scans/ear_P0${p}_rep${r}.hdr`, 1.2e4); add(`hsi/turntable ear scans/ear_P0${p}_rep${r}.bil`, 3.1e8); }
+  add("processed/ortho_0714.tif", 1.9e9); add("processed/dsm 0714.tif", 9.0e8);
+  add("processed/plant_height_by_plot.csv", 8.4e4); add("processed/plant height by plot (copy).csv", 8.4e4);
+  add("3d/nerf_plot0213/transforms.json", 1.2e5); add("3d/nerf_plot0213/point_cloud.ply", 3.4e8);
+  add("genotypes/hybrids_480_snp.vcf.gz", 5.2e8);
+  add("scripts/extract_height.py", 6.1e3); add("scripts/Untitled.ipynb", 2.4e5); add("scripts/Untitled1.ipynb", 1.1e5);
+  add("notes/field notes.docx", 3.8e5); add("notes/plot map FINAL.xlsx", 5.6e4); add("notes/~$plot map FINAL.xlsx", 165);
+  add("calibration panel.JPG", 6.9e6); add("weather_ames_2025.csv", 2.2e5); add(".DS_Store", 6148);
+  for (let i = 1; i <= 5; i++) add(`misc/New folder/IMG_452${i}.HEIC`, 2.4e6);
+  return L;
+}
+
+// ---------------- ingest ----------------
+function ingest(list, isSample){
+  list = list.filter(f => f.path);
+  const firsts = new Set(list.map(f => f.path.split("/")[0]));
+  if (firsts.size === 1 && list.every(f => f.path.includes("/"))){
+    S.rootName = [...firsts][0];
+    list.forEach(f => f.path = f.path.split("/").slice(1).join("/"));
+  } else S.rootName = "dataset";
+  S.isSample = isSample;
+  S.files = list.map(analyzeFile);
+  S.clusters = [];
+  if (isSample) sampleMeta(); else { S.meta = new Map(); S.metaIsExample = false; indexStemMeta(); }
+  markDuplicates(); buildClusters(); buildPlan();
+  S.planSource = "rules"; S.planSummary = ""; S.followups = []; S.observations = [];
+  renderAll();
+}
+async function readEntries(entry, prefix, out){
+  if (entry.isFile){
+    await new Promise(res => entry.file(f => { out.push({ path: prefix + f.name, size: f.size, mtime: f.lastModified, file: f }); res(); }, () => res()));
+  } else if (entry.isDirectory){
+    const reader = entry.createReader();
+    let batch;
+    do {
+      batch = await new Promise(res => reader.readEntries(res, () => res([])));
+      for (const e of batch) await readEntries(e, prefix + entry.name + "/", out);
+    } while (batch.length);
+  }
+}
+
+// ---------------- curator (Claude) ----------------
+const FIELD_KEYS = ["title","description","contact","email","orcid","institution","funding","organism","site","site_code","latlon","year","start","end","sensors","traits","processing","license","access","doi","links"];
+function folderDigest(maxClusters = 120){
+  const lines = [`Root folder: "${S.rootName}". ${S.files.length} files, ${fmtBytes(S.files.reduce((s,f)=>s+f.size,0))}. Junk files (auto-skipped): ${S.files.filter(f=>f.junk).length}.`];
+  lines.push("Groups (id | folder | name pattern (# = digits) | count | size | examples | likely duplicates | rules guess cat/dtype | metadata read from file headers, if any):");
+  for (const c of S.clusters.slice(0, maxClusters))
+    { const cm = clusterMeta(c); lines.push(`${c.id} | ${c.dir || "(root)"} | ${c.pattern} | ${c.count} | ${fmtBytes(c.bytes)} | ${c.examples.join(" ; ")} | ${c.dups} | ${c.cat}/${c.dtype}` + (cm && cm.text ? ` | inside files: ${cm.text}` : "")); }
+  if (S.clusters.length > maxClusters) lines.push(`(+${S.clusters.length - maxClusters} more groups not shown)`);
+  return lines.join("\n");
+}
+function answersDigest(){
+  const a = FIELD_KEYS.filter(k => S.answers[k]).map(k => `${k}: ${Array.isArray(S.answers[k]) ? S.answers[k].join(", ") : S.answers[k]}`);
+  const f = S.followups.filter(q => q.a).map(q => `Q: ${q.q}\nA: ${q.a}`);
+  return (a.length ? a.join("\n") : "(no answers yet)") + (f.length ? "\n\nFollow-up answers:\n" + f.join("\n") : "");
+}
+const ERR_COPY = {
+  not_granted: "The curator was not allowed to run. You can still plan with rules.",
+  sampling_disabled: "Claude is not available for this account. You can still plan with rules.",
+  rate_limited: "Too many requests right now. Wait a minute and try again.",
+  session_expired: "Your Claude session expired. Sign in again, then retry.",
+  prompt_too_large: "The folder summary is too large to send. Try a smaller folder.",
+  invalid_json: "The curator's reply could not be read. Try again.",
+  refused: "The curator declined this request. Edit your answers and try again.",
+  upstream_error: "The curator could not be reached. Try again."
+};
+const errText = e => ERR_COPY[e?.code] || ERR_COPY.upstream_error;
+
+async function askCurator(){
+  if (!sampleFn) return;
+  const btn = $("#askCurator"), stop = $("#stopCurator"), msg = $("#curatorMsg");
+  curatorCtl = new AbortController();
+  btn.disabled = true; stop.hidden = false; msg.className = "status"; msg.textContent = "Thinking… the curator is reading your file names.";
+  const prompt = `You are a research data curator for a university plant-phenotyping lab (UAV RGB/multispectral, LiDAR, hyperspectral turntable imaging, 3D reconstruction with SfM/NeRF/3D Gaussian splatting, genotypes, field trials). A lab member (often a grad student) loaded a messy folder and wants it organized to FAIR standards (MIAPPE, Croissant). You see file names, sizes, groups and short summaries of metadata read from file headers (camera model, capture dates, GPS, LiDAR CRS, spectral bands, table columns) — never the data itself.
+
+TASKS
+1. "guesses": fill answer fields that are EMPTY below, only when the file names give clear evidence (e.g. a year in dates, crop from names). Never invent people, emails, grant numbers, DOIs, coordinates, or ontology IDs. Allowed keys: ${FIELD_KEYS.join(", ")}. For "sensors" give an array chosen from: ${SENSORS.join("; ")}.
+2. "questions": 3 to 7 short follow-up questions, plain 10th-grade English, that would most change how files are organized or described: which flight/date/plot files belong to, raw vs processed, what unknown file types are, which duplicates to keep, what the processing steps were. Refer to specific file names or group ids. Give 2-4 short answer "choices" when natural. Add one-line "why".
+3. "observations": up to 4 one-line notes on problems you see (duplicates, unknown formats, missing README/license, mixed seasons).
+
+Reply with only JSON: {"guesses":{"key":"value"},"questions":[{"q":"...","why":"...","choices":["..."]}],"observations":["..."]}
+
+CURRENT ANSWERS
+${answersDigest()}
+
+FOLDER
+${folderDigest()}`;
+  try {
+    const r = await sampleFn.json(prompt, { signal: curatorCtl.signal, cache: false });
+    const g = r?.guesses && typeof r.guesses === "object" ? r.guesses : {};
+    for (const [k, v] of Object.entries(g)){
+      if (!FIELD_KEYS.includes(k) || v == null || v === "") continue;
+      const cur = S.answers[k];
+      if (cur && (!Array.isArray(cur) || cur.length)) continue;
+      S.answers[k] = k === "sensors" ? (Array.isArray(v) ? v.filter(x => SENSORS.includes(x)) : []) : String(v).slice(0, 400);
+      S.guessed.add(k);
+    }
+    const prev = new Map(S.followups.map(q => [q.q, q.a]));
+    S.followups = (Array.isArray(r?.questions) ? r.questions : []).slice(0, 7).map(q => ({ q: String(q.q || ""), why: String(q.why || ""), choices: Array.isArray(q.choices) ? q.choices.slice(0, 4).map(String) : [], a: prev.get(String(q.q)) || "" })).filter(q => q.q);
+    S.observations = (Array.isArray(r?.observations) ? r.observations : []).slice(0, 4).map(String);
+    msg.textContent = S.followups.length ? "Answer what you can below, then go to Plan. You can ask again after answering." : "The curator had no questions.";
+    saveLocal(); renderForm(); renderFollowups();
+  } catch (e){
+    if (e?.code !== "cancelled"){ msg.className = "status err"; msg.textContent = errText(e); if (["not_granted","sampling_disabled","not_declared","capability_disabled"].includes(e?.code)){ sampleFn = null; renderCuratorStatus(); } }
+    else msg.textContent = "Stopped.";
+  } finally { btn.disabled = !sampleFn; stop.hidden = true; }
+}
+
+async function planWithCurator(){
+  if (!sampleFn) return;
+  const btn = $("#planCurator"), stop = $("#stopPlan"), msg = $("#planMsg");
+  planCtl = new AbortController();
+  btn.disabled = true; stop.hidden = false; msg.className = "status"; msg.textContent = "Thinking… the curator is planning the layout (can take a minute).";
+  const prompt = `You are a research data curator for a plant-phenotyping lab. Plan a FAIR folder layout for a messy dataset. You see groups of similar files (not contents) with a rules-based first guess, plus the owner's answers.
+
+For EVERY group id return:
+- "cat": one of ${CATS.join(", ")}  (raw = straight from a sensor; processed = derived intermediate products such as orthomosaics, point clouds, reconstructions; results = final trait tables, statistics, trained models; metadata = field maps, calibration, configs; code; docs; archive; other). Do NOT add 01_/02_ numbers: the app numbers folders and field-day sessions automatically in reading order (docs, metadata, raw, processed, results, code) and pipeline order.
+- "dtype": short snake_case data type (e.g. uav_rgb, lidar, hyperspectral, orthomosaics, point_clouds, trait_tables, genotypes, field_design, scripts, notes)
+- "folder": target folder relative to the dataset root, lowercase, only a-z 0-9 _ - and /, starting with the cat. May use the tokens {date} (YYYY-MM-DD from the file name) and {plot}. Put per-flight or per-session sensor data under {date}. Keep sidecar files (e.g. .MRK, .RTK, .hdr) in the same folder as the data they describe.
+- "rename": "keep" (clean the original name), "template" (use "${S.settings.template}"), or "seq" (session_date_site_dtype_plot_sequence, numbered in time order). Prefer "keep" when original names carry meaning (sensor timestamps, plot ids); use "template" or "seq" for meaningless names like Untitled or IMG_1234.
+- "date_source": "name" (date in file/folder name, then embedded capture date), "embedded" (capture date from inside the file first; best for images and scans when names lack dates or disagree), "modified" (file time, last resort) or "none".
+- "exclude": true only for obvious junk; never exclude real data.
+- "note": one short line for the owner (why, or what to check).
+Also return "summary" (2 sentences, plain English) and "dtype_descriptions" ({dtype: one sentence for the README}).
+
+Reply with only JSON: {"clusters":[{"id":"g1","cat":"raw","dtype":"uav_rgb","folder":"raw/uav_rgb/{date}","rename":"keep","date_source":"name","exclude":false,"note":"..."}],"summary":"...","dtype_descriptions":{"uav_rgb":"..."}}
+
+OWNER ANSWERS
+${answersDigest()}
+
+GROUPS
+${folderDigest(150)}`;
+  try {
+    const r = await sampleFn.json(prompt, { signal: planCtl.signal, cache: false, modelTier: "default" });
+    const byId = new Map(S.clusters.map(c => [c.id, c]));
+    let n = 0;
+    for (const x of (Array.isArray(r?.clusters) ? r.clusters : [])){
+      const c = byId.get(String(x.id)); if (!c) continue;
+      if (CATS.includes(x.cat)) c.cat = x.cat;
+      if (x.dtype) c.dtype = seg(x.dtype) || c.dtype;
+      if (x.folder){ const fo = cleanFolder(x.folder); if (fo) c.folder = fo; }
+      if (["keep","template","seq"].includes(x.rename)) c.rename = x.rename;
+      if (["name","embedded","modified","none"].includes(x.date_source)) c.dateSrc = x.date_source;
+      c.exclude = x.exclude === true;
+      c.note = String(x.note || "").slice(0, 200);
+      n++;
+    }
+    if (r?.dtype_descriptions && typeof r.dtype_descriptions === "object") for (const [k, v] of Object.entries(r.dtype_descriptions)) S.dtypeDesc[seg(k)] = String(v).slice(0, 300);
+    S.planSummary = String(r?.summary || "");
+    S.planSource = "curator";
+    msg.textContent = `Curator planned ${n} of ${S.clusters.length} groups. Review the table; your edits win.`;
+    buildPlan(); renderPlan();
+  } catch (e){
+    if (e?.code !== "cancelled"){ msg.className = "status err"; msg.textContent = errText(e); if (["not_granted","sampling_disabled","not_declared","capability_disabled"].includes(e?.code)){ sampleFn = null; renderCuratorStatus(); } }
+    else msg.textContent = "Stopped.";
+  } finally { btn.disabled = !sampleFn; stop.hidden = true; }
+}
+
+// ---------------- FAIR scoring ----------------
+const SUBS = [["F1","Persistent ID (DOI)"],["F2","Rich metadata"],["F3","Metadata names the data ID"],["F4","Indexed / searchable"],["A1","Retrievable by ID"],["A1.1","Open protocol"],["A1.2","Access rules allowed"],["A2","Metadata outlives data"],["I1","Formal metadata language"],["I2","Shared vocabularies"],["I3","Links to related data"],["R1","Many relevant attributes"],["R1.1","Clear license"],["R1.2","Provenance"],["R1.3","Community standard"]];
+const OPEN_EXT = new Set([".las",".laz",".ply",".csv",".tsv",".json",".tif",".tiff",".jpg",".jpeg",".png",".hdr",".bil",".bip",".bsq",".vcf",".vcf.gz",".txt",".md",".py",".ipynb",".r",".h5",".hdf5",".parquet",".e57",".obj",".glb",".gltf",".pdf",".xml",".yaml",".yml",".dng",".mp4",".npy",".npz"]);
+function fairScores(){
+  const a = S.answers, o = S.outputs, live = S.files.filter(f => !f.junk);
+  const hasReadme = live.some(f => /^readme/i.test(f.name)), hasLic = live.some(f => /^(license|licence|copying)/i.test(f.name));
+  const openFrac = live.length ? live.filter(f => OPEN_EXT.has(f.ext)).length / live.length : 0;
+  const lic = a.license && !/not decided/i.test(a.license);
+  const B = { F1: a.doi ? 1 : 0, F2: hasReadme ? .5 : 0, F3: 0, F4: a.doi ? .5 : 0, A1: .5, "A1.1": 1, "A1.2": .5, A2: 0, I1: openFrac > .8 ? .5 : 0, I2: 0, I3: 0, R1: hasReadme ? .5 : 0, "R1.1": hasLic ? 1 : 0, "R1.2": 0, "R1.3": 0 };
+  const O = { ...B };
+  // Dataset-level summary of metadata read from inside files (dates, GPS box, sensors) that reaches README / MIAPPE / Croissant
+  const ef = S.meta.size ? embeddedFacts() : null;
+  const summaryReached = !!(ef && (ef.start || ef.bbox || ef.sensors.length) && (o.readme || o.miappe || o.croissant));
+  O.R1 = Math.min(1, (o.readme ? .5 : 0) + (o.miappe ? .5 : 0) + (summaryReached ? .5 : 0)) || B.R1;
+  if (o.readme){ O.F2 = 1; O.I1 = Math.max(O.I1, .5); }
+  else if (summaryReached) O.F2 = Math.max(O.F2, .5);
+  if (o.croissant){ O.I1 = 1; O.F3 = Math.max(O.F3, .5); }
+  if (o.miappe) O.I2 = /\b[A-Z]{2,5}_\d{3,}:\d{5,}\b/.test(a.traits || "") ? 1 : .5;
+  if ((a.links || "").trim()) O.I3 = o.croissant || o.readme ? 1 : .5;
+  if (lic) O["R1.1"] = 1;
+  O["R1.2"] = (a.processing || "").trim() ? 1 : .5;
+  O["R1.3"] = o.miappe && o.croissant ? 1 : (o.miappe || o.croissant) ? .5 : 0;
+  const D = { ...O, F1: 1, F3: 1, F4: 1, A1: 1, "A1.1": 1, "A1.2": 1, A2: 1 };
+  const summ = X => {
+    const L = { F: ["F1","F2","F3","F4"], A: ["A1","A1.1","A1.2","A2"], I: ["I1","I2","I3"], R: ["R1","R1.1","R1.2","R1.3"] };
+    const let_ = {}; for (const [k, ids] of Object.entries(L)) let_[k] = ids.reduce((s, id) => s + X[id], 0) / ids.length;
+    return { pct: SUBS.reduce((s, [id]) => s + X[id], 0) / 15 * 100, prod: let_.F * let_.A * let_.I * let_.R, let_ };
+  };
+  return { B, O, D, sB: summ(B), sO: summ(O), sD: summ(D) };
+}
+
+// ---------------- generators ----------------
+const MIME = {".jpg":"image/jpeg",".jpeg":"image/jpeg",".png":"image/png",".tif":"image/tiff",".tiff":"image/tiff",".dng":"image/x-adobe-dng",".heic":"image/heic",".las":"application/vnd.las",".laz":"application/vnd.laszip",".ply":"application/x-ply",".csv":"text/csv",".tsv":"text/tab-separated-values",".json":"application/json",".txt":"text/plain",".md":"text/markdown",".pdf":"application/pdf",".vcf":"text/x-vcf",".vcf.gz":"application/gzip",".py":"text/x-python",".ipynb":"application/x-ipynb+json",".xlsx":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",".docx":"application/vnd.openxmlformats-officedocument.wordprocessingml.document",".hdr":"text/plain",".bil":"application/octet-stream",".mp4":"video/mp4",".mov":"video/quicktime",".zip":"application/zip",".parquet":"application/vnd.apache.parquet",".h5":"application/x-hdf5",".obj":"model/obj",".glb":"model/gltf-binary"};
+const A = k => { const v = S.answers[k]; return Array.isArray(v) ? v.join(", ") : (v || ""); };
+function dtypeSummary(){
+  const m = new Map();
+  for (const r of S.rows) if (r.action === "copy"){
+    const k = r.dtype; if (!m.has(k)) m.set(k, { dtype: k, cat: r.cat, n: 0, bytes: 0, exts: new Map(), dirs: [] });
+    const d = m.get(k); d.n++; d.bytes += r.size; const ext = splitExt(r.new.split("/").pop())[1]; d.exts.set(ext, (d.exts.get(ext) || 0) + 1); d.dirs.push(r.new.slice(0, r.new.lastIndexOf("/")));
+  }
+  for (const d of m.values()){
+    let pre = d.dirs[0].split("/");
+    for (const x of d.dirs){ const p = x.split("/"); let i = 0; while (i < pre.length && pre[i] === p[i]) i++; pre = pre.slice(0, i); }
+    d.prefix = pre.join("/");
+  }
+  return [...m.values()].sort((a, b) => a.cat.localeCompare(b.cat) || a.dtype.localeCompare(b.dtype));
+}
+function treeLines(maxDepth = 3){
+  const root = {};
+  for (const r of S.rows) if (r.action === "copy"){
+    const parts = r.new.split("/"); parts.pop();
+    let node = root; node.__n = (node.__n || 0) + 1;
+    for (const p of parts.slice(0, maxDepth)){ node[p] = node[p] || {}; node = node[p]; node.__n = (node.__n || 0) + 1; }
+  }
+  const out = [];
+  const walk = (n, ind) => { for (const k of Object.keys(n).filter(k => k !== "__n").sort()){ out.push(`${ind}${k}/  (${n[k].__n} files)`); walk(n[k], ind + "  "); } };
+  walk(root, "");
+  return out;
+}
+function genReadme(){
+  const t = fairScores(); const ds = dtypeSummary();
+  const dates = S.rows.filter(r => r.action === "copy").map(r => (r.new.match(/(20\d\d-\d\d-\d\d)/) || [])[1]).filter(Boolean).sort();
+  const L = [];
+  L.push(`# ${A("title") || S.rootName}`, "");
+  if (A("description")) L.push(A("description"), "");
+  L.push("## At a glance", "", "| Field | Value |", "|---|---|");
+  const kv = [["Contact", [A("contact"), A("email")].filter(Boolean).join(" · ")], ["ORCID", A("orcid")], ["Institution", A("institution")], ["Funding", A("funding")], ["Organism", A("organism")], ["Site", [A("site"), A("latlon")].filter(Boolean).join(" · ")], ["Season", A("year")], ["Dates", A("start") || A("end") ? `${A("start")} to ${A("end")}` : (dates.length ? `${dates[0]} to ${dates[dates.length-1]} (from file names)` : "")], ["Sensors / data types", A("sensors")], ["Traits", A("traits")], ["License", A("license") || "Not decided"], ["Access", A("access")], ["DOI", A("doi") || "Not yet assigned"]];
+  for (const [k, v] of kv) if (v) L.push(`| ${k} | ${String(v).replace(/\|/g, "/")} |`);
+  if (S.settings.numbered){
+    L.push("", "## Start here: follow the numbers", "", "Folders are numbered in the order a new person should read them. Inside each, data types are numbered in pipeline order (sensor data before products made from it). Dated folders carry a session number, so session 01 is the first field day for every sensor.", "");
+    L.push("1. `00_docs/` and this README: what the project is.", "2. `01_metadata/`: field design (plot map), calibration, settings. Needed to interpret the data.", "3. `02_raw/`: data exactly as it came off each sensor, by session.", "4. `03_processed/`: products made from raw data (orthomosaics, point clouds, reconstructions).", "5. `04_results/`: final trait tables and models used in papers.", "6. `05_code/`: scripts that turn raw into processed and results.", "7. `99_review/`: possible duplicates to check.", "");
+    if (S.sessions.length){
+      L.push("### Session calendar", "", "| Session | Date | Data collected |", "|---|---|---|");
+      for (const x of S.sessions) L.push(`| ${x.n} | ${x.date} | ${[...x.dtypes].join(", ")} |`);
+      L.push("");
+    }
+  }
+  L.push("", ...embeddedReadmeSection());
+  L.push("", "## Folder layout", "", "```", ...treeLines(3), "```", "");
+  L.push("## Data types", "", "| Folder | Type | Files | Size | Formats | Description |", "|---|---|---|---|---|---|");
+  for (const d of ds) L.push(`| \`${d.prefix}/\` | ${d.dtype} | ${d.n} | ${fmtBytes(d.bytes)} | ${[...d.exts.keys()].join(", ")} | ${(S.dtypeDesc[d.dtype] || DT_DESC[d.dtype] || "").replace(/\|/g, "/")} |`);
+  L.push("", "## File naming", "");
+  L.push("- Dates are ISO 8601 (`YYYY-MM-DD` in folders, `YYYYMMDD` in names). `undated/` (or `99_undated/`) means no date was found in the original name." + (S.settings.numbered ? " Numbers like `02_` set reading order; `s01` in a file name is the session number." : ""));
+  L.push(`- Template for renamed groups: \`${S.settings.template}\`. Groups set to "keep" use the cleaned original name.`);
+  L.push("- `_review/duplicates/` holds files that looked like copies of another file (same size, near-identical name). Check, then delete or keep.");
+  L.push("- `" + metaDir() + "/manifest.csv` maps every original path to its new path (written when the organize script runs).", "");
+  if (A("processing")) L.push("## Processing and provenance", "", A("processing"), "");
+  if (A("links")) L.push("## Related resources", "", A("links"), "");
+  L.push("## How to cite", "", `${A("contact") || "Author"} (${(A("year") || new Date().getFullYear())}). ${A("title") || S.rootName}. ${A("institution")}. ${A("doi") ? "https://doi.org/" + A("doi").replace(/^https?:\/\/doi\.org\//, "") : "DOI to be assigned on deposit."}`, "");
+  L.push("## FAIR status", "", `Scored with the 15 FAIR sub-principles (Wilkinson et al. 2016): ${t.sO.pct.toFixed(0)}% after organizing, ${t.sD.pct.toFixed(0)}% projected after repository deposit. See \`${metaDir()}/FAIR_report.md\`.`, "");
+  L.push(`_Generated by FAIR Folder Curator on ${new Date().toISOString().slice(0, 10)}. Edit freely._`);
+  return L.join("\n");
+}
+function genMiappe(){
+  const org = A("organism"); const [genus, species] = (org.match(/^([A-Z][a-z]+)\s+([a-z]+)/) || [, "", ""]).slice(1);
+  const [lat, lon] = (A("latlon").match(/-?\d+(\.\d+)?/g) || []);
+  const rows = [
+    ["Section","MIAPPE field","Value","Note"],
+    ["Investigation","Investigation unique ID", slug(A("title") || S.rootName), ""],
+    ["Investigation","Investigation title", A("title"), ""],
+    ["Investigation","Investigation description", A("description"), ""],
+    ["Investigation","Submission date", new Date().toISOString().slice(0,10), ""],
+    ["Investigation","Public release date", "", "Fill in when published"],
+    ["Investigation","License", A("license"), ""],
+    ["Investigation","MIAPPE version", "1.1", ""],
+    ["Investigation","Associated publication", A("links"), "DOI of related paper"],
+    ["Person","Person name", A("contact"), ""],
+    ["Person","Person email", A("email"), ""],
+    ["Person","Person ID", A("orcid") ? "https://orcid.org/" + A("orcid").replace(/^https?:\/\/orcid\.org\//, "") : "", "ORCID"],
+    ["Person","Person role", "Data curator; contact", ""],
+    ["Person","Person affiliation", A("institution"), ""],
+    ["Study","Study unique ID", slug((A("title") || S.rootName) + "-" + (A("year") || "")), ""],
+    ["Study","Study title", A("title"), ""],
+    ["Study","Study description", A("description"), ""],
+    ["Study","Start date of study", A("start"), ""],
+    ["Study","End date of study", A("end"), ""],
+    ["Study","Contact institution", A("institution"), ""],
+    ["Study","Geographic location (site name)", A("site"), ""],
+    ["Study","Geographic location (latitude)", lat || "", ""],
+    ["Study","Geographic location (longitude)", lon || "", ""],
+    ["Study","Experimental site name", A("site"), ""],
+    ["Study","Description of the experimental design", "", "e.g. RCBD, 2 reps; see the field_design folder"],
+    ["Study","Observation unit level hierarchy", "", "e.g. block>plot>plant"],
+    ["Study","Cultural practices", "", ""],
+    ["Study","Data file link", "README.md; " + metaDir() + "/manifest.csv", ""],
+    ["Study","Data file description", "Files grouped by data type; see README", ""],
+    ["Biological Material","Organism", org ? (org.includes("Zea") ? "NCBITAXON:4577" : org.includes("Glycine") ? "NCBITAXON:3847" : org.includes("Sorghum") ? "NCBITAXON:4558" : org.includes("Malus") ? "NCBITAXON:3750" : "") : "", "NCBI Taxonomy ID"],
+    ["Biological Material","Genus", genus || "", ""],
+    ["Biological Material","Species", species || "", ""],
+    ["Biological Material","Biological material ID", "", "One row per genotype/hybrid; link to genotypes/"],
+    ["Environment","Environment parameter", "", "e.g. sowing density, irrigation; see raw/weather"],
+    ["Data file","Data file version", "1.0", ""]
+  ];
+  const traits = A("traits").split(/[;,\n]/).map(s => s.trim()).filter(Boolean);
+  (traits.length ? traits : [""]).forEach((t, i) => {
+    const id = (t.match(/\b[A-Z]{2,5}_\d{3,}:\d{5,}\b/) || [""])[0];
+    rows.push(["Observed Variable", "Variable ID", slug(t.replace(id, "")) || `var_${i+1}`, ""]);
+    rows.push(["Observed Variable", "Trait", t.replace(/\(?\b[A-Z]{2,5}_\d{3,}:\d{5,}\b\)?/, "").trim(), ""]);
+    rows.push(["Observed Variable", "Trait accession number", id, "Crop Ontology ID if known"]);
+    rows.push(["Observed Variable", "Method", "", "How it was measured (sensor + algorithm)"]);
+    rows.push(["Observed Variable", "Scale", "", "Unit, e.g. cm"]);
+  });
+  return rows.map(r => r.map(v => String(v ?? "").replace(/[\t\n\r]+/g, " ")).join("\t")).join("\n") + "\n";
+}
+function genCroissant(){
+  const ds = dtypeSummary();
+  const people = A("contact") ? [{ "@type": "sc:Person", name: A("contact"), ...(A("email") ? { email: A("email") } : {}), ...(A("orcid") ? { url: "https://orcid.org/" + A("orcid").replace(/^https?:\/\/orcid\.org\//, "") } : {}) }] : [];
+  const licUrl = { "CC-BY-4.0": "https://creativecommons.org/licenses/by/4.0/", "CC0-1.0": "https://creativecommons.org/publicdomain/zero/1.0/", "CC-BY-NC-4.0": "https://creativecommons.org/licenses/by-nc/4.0/" }[A("license")] || A("license");
+  const dist = [];
+  for (const d of ds) for (const [ext, n] of d.exts){
+    dist.push({ "@type": "cr:FileSet", "@id": `${d.dtype}${ext.replace(/\./g, "_")}`, name: `${d.dtype}${ext.replace(/\./g, "_")}`, description: `${n} ${ext || "no-extension"} files. ${S.dtypeDesc[d.dtype] || DT_DESC[d.dtype] || ""}`.trim(), encodingFormat: MIME[ext] || "application/octet-stream", includes: `${d.prefix ? d.prefix + "/" : ""}**/*${ext}` });
+  }
+  const doc = {
+    "@context": { "@language": "en", "@vocab": "https://schema.org/", citeAs: "cr:citeAs", column: "cr:column", conformsTo: "dct:conformsTo", cr: "http://mlcommons.org/croissant/", rai: "http://mlcommons.org/croissant/RAI/", data: { "@id": "cr:data", "@type": "@json" }, dataType: { "@id": "cr:dataType", "@type": "@vocab" }, dct: "http://purl.org/dc/terms/", examples: { "@id": "cr:examples", "@type": "@json" }, extract: "cr:extract", field: "cr:field", fileProperty: "cr:fileProperty", fileObject: "cr:fileObject", fileSet: "cr:fileSet", format: "cr:format", includes: "cr:includes", isLiveDataset: "cr:isLiveDataset", jsonPath: "cr:jsonPath", key: "cr:key", md5: "cr:md5", parentField: "cr:parentField", path: "cr:path", recordSet: "cr:recordSet", references: "cr:references", regex: "cr:regex", repeated: "cr:repeated", replace: "cr:replace", sc: "https://schema.org/", separator: "cr:separator", source: "cr:source", subField: "cr:subField", transform: "cr:transform" },
+    "@type": "sc:Dataset",
+    conformsTo: "http://mlcommons.org/croissant/1.0",
+    name: slug(A("title") || S.rootName),
+    description: A("description") || `Organized dataset: ${A("title") || S.rootName}.`,
+    license: licUrl || "",
+    url: A("doi") ? "https://doi.org/" + A("doi").replace(/^https?:\/\/doi\.org\//, "") : "",
+    version: "1.0.0",
+    datePublished: "",
+    creator: people,
+    keywords: [A("organism"), ...(S.answers.sensors || []), "plant phenotyping"].filter(Boolean),
+    citeAs: `${A("contact") || "Author"} (${A("year") || new Date().getFullYear()}). ${A("title") || S.rootName}.`,
+    distribution: dist
+  };
+  const ef = embeddedFacts();
+  if (ef.start) doc.temporalCoverage = ef.start === ef.end ? ef.start : `${ef.start}/${ef.end}`;
+  if (ef.bbox) doc.spatialCoverage = { "@type": "sc:Place", name: A("site") || "", geo: { "@type": "sc:GeoShape", box: ef.bbox.map(v => v.toFixed(6)).join(" ") } };
+  return JSON.stringify(doc, null, 2) + "\n";
+}
+function genFair(){
+  const t = fairScores(); const f = v => v === 1 ? "1" : v === .5 ? "0.5" : "0";
+  const L = [`# FAIR report: ${A("title") || S.rootName}`, "", "Each of the 15 FAIR sub-principles (Wilkinson et al. 2016, Sci Data 3:160018) scored 0 (fails), 0.5 (partly) or 1 (passes). Heuristic self-assessment, not an audit. Run an automated check (F-UJI) on the DOI after deposit.", "", "| ID | Meaning | Before | After organizing | After deposit (projected) |", "|---|---|---|---|---|"];
+  for (const [id, m] of SUBS) L.push(`| ${id} | ${m} | ${f(t.B[id])} | ${f(t.O[id])} | ${f(t.D[id])} |`);
+  const row = (n, s) => `| ${n} | ${s.let_.F.toFixed(2)} | ${s.let_.A.toFixed(2)} | ${s.let_.I.toFixed(2)} | ${s.let_.R.toFixed(2)} | ${s.pct.toFixed(1)}% | ${s.prod.toFixed(3)} |`;
+  L.push("", "| Stage | F | A | I | R | Mean of 15 | F·A·I·R |", "|---|---|---|---|---|---|---|", row("Before", t.sB), row("After organizing", t.sO), row("After deposit", t.sD), "");
+  L.push("Metadata read from inside the files counts toward F2 and R1 only through the dataset-level summary (date range, GPS extent, sensors) written into the README, MIAPPE sheet and Croissant file. Per-file metadata tables are optional and do not change the score.", "");
+  L.push("F·A·I·R is a weakest-link teaching model: reuse needs every letter, so one zero sinks the product even when the mean looks fine.", "", "## Next steps to close gaps", "");
+  const gaps = SUBS.filter(([id]) => t.D[id] < 1).map(([id, m]) => `- **${id} ${m}**: ` + ({ I2: "add Crop Ontology trait IDs (cropontology.org) to the traits list and MIAPPE sheet.", I3: "add links to the related paper, code repository and genotype data.", "R1.1": "choose a license (CC-BY-4.0 is common for data).", "R1.2": "describe processing steps, software versions and the git commit of your pipeline.", "R1.3": "generate both the MIAPPE sheet and the Croissant file.", R1: "generate the README and MIAPPE sheet.", I1: "generate the Croissant JSON-LD file.", F2: "generate the README." }[id] || "see the FAIR lesson."));
+  L.push(...(gaps.length ? gaps : ["- None. Deposit the folder and run F-UJI on its DOI."]));
+  return L.join("\n") + "\n";
+}
+function genPlanCsv(){
+  const q = v => /[",\n]/.test(v) ? `"${String(v).replace(/"/g, '""')}"` : v;
+  return ["original_path,new_path,size_bytes,action", ...S.rows.map(r => [r.old, r.new || "", r.size, r.action].map(q).join(","))].join("\n") + "\n";
+}
+function b64utf8(str){
+  const bytes = new TextEncoder().encode(str); let bin = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+const wrapB64 = s => { const out = []; for (let i = 0; i < s.length; i += 96) out.push('    "' + s.slice(i, i + 96) + '"'); return out.join("\n") || '    ""'; };
+function extras(){
+  const x = {};
+  if (S.outputs.readme) x["README.md"] = genReadme();
+  if (S.outputs.miappe) x[metaDir() + "/miappe.tsv"] = genMiappe();
+  if (S.outputs.croissant) x[metaDir() + "/croissant.json"] = genCroissant();
+  if (S.outputs.fair) x[metaDir() + "/FAIR_report.md"] = genFair();
+  if (S.outputs.embedded && S.meta.size) Object.assign(x, embeddedTables());
+  return x;
+}
+function genScript(){
+  const plan = S.rows.map(r => ({ old: r.old, new: r.new, size: r.size, action: r.action }));
+  const title = (A("title") || S.rootName).replace(/[\r\n"\\]/g, " ");
+  const head = `#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+organize.py - generated by FAIR Folder Curator on ${new Date().toISOString().slice(0, 10)}
+Project: ${title}
+Original folder name: ${S.rootName.replace(/[\r\n"\\]/g, " ")}
+Plan: ${plan.filter(r => r.action === "copy").length} files to organize, ${plan.filter(r => r.action !== "copy").length} skipped (junk or excluded)
+
+Copies (or moves) files from your messy folder into a clean, FAIR-style layout.
+The default is a DRY RUN: nothing changes until you add --apply.
+
+  python organize.py SOURCE_FOLDER NEW_FOLDER                  # preview only
+  python organize.py SOURCE_FOLDER NEW_FOLDER --apply          # copy (originals untouched)
+  python organize.py SOURCE_FOLDER NEW_FOLDER --apply --move   # move instead of copy
+  python organize.py --undo NEW_FOLDER/${metaDir()}/manifest.csv   # remove the copies again
+  python organize.py --undo NEW_FOLDER/${metaDir()}/manifest.csv --source SOURCE_FOLDER   # undo a move
+
+Options:
+  --checksum   record SHA-256 of every file and verify each copy (slower, recommended for final archives)
+  --yes        skip the confirmation questions
+Needs only Python 3.8+ and its standard library.
+"""
+`;
+  const body = String.raw`import argparse, base64, csv, hashlib, json, os, shutil, sys
+
+PLAN_B64 = (
+__PLAN__
+)
+EXTRA_B64 = (
+__EXTRA__
+)
+DEFAULT_CHECKSUM = __CHK__
+META_DIR = "__META__"
+
+
+def native(rel):
+    return os.path.join(*rel.split("/"))
+
+
+def sha256(path, buf=1 << 20):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(buf), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def unique_target(path):
+    if not os.path.exists(path):
+        return path
+    base, ext = os.path.splitext(path)
+    i = 2
+    while os.path.exists(f"{base}_{i}{ext}"):
+        i += 1
+    return f"{base}_{i}{ext}"
+
+
+def confirm(msg, yes):
+    if yes:
+        return True
+    try:
+        return input(msg + " Type yes to continue: ").strip().lower() == "yes"
+    except EOFError:
+        return False
+
+
+def run(src, dst, apply, move, checksum, yes):
+    plan = json.loads(base64.b64decode(PLAN_B64).decode("utf-8"))
+    extra = json.loads(base64.b64decode(EXTRA_B64).decode("utf-8"))
+    src = os.path.abspath(src)
+    dst = os.path.abspath(dst)
+    if not os.path.isdir(src):
+        sys.exit(f"Source folder not found: {src}")
+    if dst == src or dst.startswith(src + os.sep):
+        sys.exit("NEW_FOLDER must be outside SOURCE_FOLDER.")
+    todo = [r for r in plan if r["action"] == "copy"]
+    skipped = [r for r in plan if r["action"] != "copy"]
+    missing = [r for r in todo if not os.path.isfile(os.path.join(src, native(r["old"])))]
+    total = sum(r["size"] for r in todo)
+    verb = "move" if move else "copy"
+    print(f"Plan: {len(todo)} files to {verb} ({total / 1e9:.2f} GB), {len(skipped)} skipped, {len(missing)} missing in source.")
+    for r in todo[:15]:
+        print(f"  {r['old']}  ->  {r['new']}")
+    if len(todo) > 15:
+        print(f"  ... and {len(todo) - 15} more")
+    if extra:
+        print("Metadata files to write: " + ", ".join(sorted(extra)))
+    if missing:
+        print(f"{len(missing)} planned files were not found (renamed or deleted since the plan was made), e.g.:")
+        for r in missing[:10]:
+            print("  " + r["old"])
+    if not apply:
+        print("\nDry run only. Nothing was changed. Add --apply to do it.")
+        return
+    if move and not confirm(f"This will MOVE {len(todo)} files out of {src}.", yes):
+        sys.exit("Stopped. Nothing was changed.")
+    if os.path.isdir(dst) and os.listdir(dst) and not confirm(f"{dst} is not empty. New files will be added next to what is there.", yes):
+        sys.exit("Stopped. Nothing was changed.")
+    os.makedirs(os.path.join(dst, META_DIR), exist_ok=True)
+    manifest_path = unique_target(os.path.join(dst, META_DIR, "manifest.csv"))
+    ok = bad = 0
+    with open(manifest_path, "w", newline="", encoding="utf-8") as mf:
+        w = csv.writer(mf)
+        w.writerow(["original_path", "new_path", "size_bytes", "sha256", "action", "status"])
+        for r in skipped:
+            w.writerow([r["old"], "", r["size"], "", r["action"], "not copied"])
+        for i, r in enumerate(todo, 1):
+            s = os.path.join(src, native(r["old"]))
+            if not os.path.isfile(s):
+                w.writerow([r["old"], r["new"], r["size"], "", verb, "missing"])
+                bad += 1
+                continue
+            t = unique_target(os.path.join(dst, native(r["new"])))
+            new_rel = os.path.relpath(t, dst).replace(os.sep, "/")
+            try:
+                os.makedirs(os.path.dirname(t), exist_ok=True)
+                size0 = os.path.getsize(s)
+                digest = sha256(s) if checksum else ""
+                if move:
+                    shutil.move(s, t)
+                else:
+                    shutil.copy2(s, t)
+                status = "ok"
+                if os.path.getsize(t) != size0:
+                    status = "SIZE MISMATCH"
+                elif checksum and sha256(t) != digest:
+                    status = "CHECKSUM MISMATCH"
+                w.writerow([r["old"], new_rel, size0, digest, verb, status])
+                if status == "ok":
+                    ok += 1
+                else:
+                    bad += 1
+            except OSError as e:
+                w.writerow([r["old"], r["new"], r["size"], "", verb, f"error: {e}"])
+                bad += 1
+            if i % 200 == 0:
+                print(f"  {i}/{len(todo)} done")
+    for rel, text in extra.items():
+        p = unique_target(os.path.join(dst, native(rel)))
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        with open(p, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(text)
+    print(f"\nDone: {ok} files {'moved' if move else 'copied'}, {bad} problems.")
+    print(f"Manifest: {manifest_path}")
+    if bad:
+        print("Check rows in the manifest whose status is not 'ok'.")
+    print(f"Undo:     python {os.path.basename(sys.argv[0])} --undo \"{manifest_path}\"" + (f" --source \"{src}\"" if move else ""))
+
+
+def undo(manifest, source, yes):
+    manifest = os.path.abspath(manifest)
+    dst = os.path.dirname(os.path.dirname(manifest))
+    with open(manifest, encoding="utf-8") as fh:
+        rows = list(csv.DictReader(fh))
+    moved = [r for r in rows if r["action"] == "move" and r["status"] == "ok"]
+    copied = [r for r in rows if r["action"] == "copy" and r["status"] == "ok"]
+    if moved and not source:
+        sys.exit("This run moved files. Tell me where they came from: --undo MANIFEST --source ORIGINAL_FOLDER")
+    print(f"Undo: {len(moved)} files move back, {len(copied)} copies deleted. Originals of copies are not touched.")
+    if not confirm("Proceed?", yes):
+        sys.exit("Stopped. Nothing was changed.")
+    for r in moved:
+        t = os.path.join(dst, native(r["new_path"]))
+        o = os.path.join(os.path.abspath(source), native(r["original_path"]))
+        if not os.path.isfile(t):
+            continue
+        if os.path.exists(o):
+            print("  skipped (original path is taken): " + r["original_path"])
+            continue
+        os.makedirs(os.path.dirname(o), exist_ok=True)
+        shutil.move(t, o)
+    for r in copied:
+        t = os.path.join(dst, native(r["new_path"]))
+        if os.path.isfile(t) and os.path.getsize(t) == int(r["size_bytes"]):
+            os.remove(t)
+    for root, dirs, files in os.walk(dst, topdown=False):
+        if root != dst and not os.listdir(root):
+            os.rmdir(root)
+    print(f"Undo finished. Metadata files and the manifest were left in {dst}.")
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Organize a messy folder using a FAIR Folder Curator plan.")
+    ap.add_argument("source", nargs="?", help="the messy folder")
+    ap.add_argument("dest", nargs="?", help="where the organized folder goes (outside the source)")
+    ap.add_argument("--apply", action="store_true", help="actually copy/move files (default is a dry run)")
+    ap.add_argument("--move", action="store_true", help="move instead of copy")
+    ap.add_argument("--checksum", action="store_true", default=DEFAULT_CHECKSUM, help="verify every file with SHA-256")
+    ap.add_argument("--undo", metavar="MANIFEST", help="reverse a previous run using its manifest.csv")
+    ap.add_argument("--source", dest="undo_source", help="with --undo after --move: the original folder")
+    ap.add_argument("--yes", action="store_true", help="do not ask for confirmation")
+    a = ap.parse_args()
+    if a.undo:
+        undo(a.undo, a.undo_source, a.yes)
+    elif a.source and a.dest:
+        run(a.source, a.dest, a.apply, a.move, a.checksum, a.yes)
+    else:
+        ap.print_help()
+
+
+if __name__ == "__main__":
+    main()
+`;
+  return head + body.replace("__PLAN__", wrapB64(b64utf8(JSON.stringify(plan)))).replace("__EXTRA__", wrapB64(b64utf8(JSON.stringify(extras())))).replace("__CHK__", S.outputs.checksum ? "True" : "False").replace("__META__", metaDir());
+}
+const metaDir = () => S.settings.numbered ? "01_metadata" : "metadata";
+function destName(){ return slug(A("title") || S.rootName || "dataset").slice(0, 50) || "dataset"; }
+function genHowTo(){
+  const d = destName();
+  return `HOW TO RUN (about 2 minutes)
+
+1. Put organize.py next to your messy folder, e.g.
+     ~/data/${S.rootName}/        <- messy folder
+     ~/data/organize.py
+
+2. Preview (changes nothing):
+     python organize.py "${S.rootName}" "${d}"
+
+3. Copy into the new layout (originals stay where they are):
+     python organize.py "${S.rootName}" "${d}" --apply${S.outputs.checksum ? "" : "\n   Add --checksum to verify every file with SHA-256 (slower)."}
+
+4. Open ${d}/README.md and fill any blanks. Check _review/duplicates/ and other/unsorted/ if present.
+
+5. Changed your mind?
+     python organize.py --undo "${d}/${metaDir()}/manifest.csv"
+
+On Windows use "py" instead of "python". On an HPC cluster (Nova), run it on a data-transfer or interactive node.
+If files were renamed after you made the plan, the dry run lists them as missing. Re-scan the folder in the app and export again.
+`;
+}
+
+// ---------------- rendering ----------------
+const SENSORS = ["UAV RGB","UAV multispectral","LiDAR","Hyperspectral","Turntable / lab imaging","Handheld photos","3D reconstruction (SfM/NeRF/3DGS)","Genotypes","Weather","Manual measurements"];
+const FIELDS = [
+  { k: "title", label: "Project title", ph: "Maize UAV LiDAR plant height 2025" },
+  { k: "site_code", label: "Short site code for file names", ph: "AEA", hint: "3–6 letters, used in {site}" },
+  { k: "description", label: "What is this data? (2–3 sentences)", type: "area", wide: 1, ph: "UAV RGB and LiDAR flights over 480 maize hybrids at two dates, plus hyperspectral ear scans and SNP genotypes." },
+  { k: "contact", label: "Contact person", ph: "First Last" },
+  { k: "email", label: "Contact email", ph: "name@iastate.edu" },
+  { k: "orcid", label: "ORCID iD", ph: "0000-0000-0000-0000" },
+  { k: "institution", label: "Institution", ph: "Iowa State University" },
+  { k: "funding", label: "Funder and grant number", ph: "USDA-NIFA AFRI award number" },
+  { k: "organism", label: "Crop / organism", type: "select", opts: ["", "Zea mays (maize)", "Glycine max (soybean)", "Sorghum bicolor (sorghum)", "Malus domestica (apple)", "Other"] },
+  { k: "site", label: "Field site / location", ph: "ISU Agronomy Farm, Boone, IA" },
+  { k: "latlon", label: "Latitude, longitude", ph: "42.0, -93.7", hint: "optional" },
+  { k: "year", label: "Season / year", ph: "2025", hint: "helps read dates like \"july 14\"" },
+  { k: "start", label: "Start date", type: "date" },
+  { k: "end", label: "End date", type: "date" },
+  { k: "sensors", label: "Sensors and data types", type: "chips", wide: 1 },
+  { k: "traits", label: "Traits measured", ph: "plant height; leaf area index; add Crop Ontology IDs if known", wide: 1 },
+  { k: "processing", label: "How was the data processed?", type: "area", wide: 1, ph: "Software and versions, scripts and git commit, key settings." },
+  { k: "license", label: "License", type: "select", opts: ["", "CC-BY-4.0", "CC0-1.0", "CC-BY-NC-4.0", "Restricted (internal / data-use agreement)", "Not decided"] },
+  { k: "access", label: "Access", type: "select", opts: ["", "Open", "Open after embargo", "Restricted: request access", "Internal lab only"] },
+  { k: "doi", label: "DOI (if it already has one)", ph: "10.xxxx/xxxxx" },
+  { k: "links", label: "Related paper, code or data links", type: "area", wide: 1 }
+];
+function renderForm(){
+  const box = $("#form");
+  box.innerHTML = FIELDS.map(f => {
+    const v = S.answers[f.k] ?? ""; const g = S.guessed.has(f.k);
+    const lab = `${esc(f.label)}${g ? '<span class="tag">guess</span>' : ""}${f.hint ? ` <span class="h">${esc(f.hint)}</span>` : ""}`;
+    let ctl;
+    if (f.type === "area") ctl = `<textarea id="f_${f.k}" placeholder="${esc(f.ph || "")}">${esc(v)}</textarea>`;
+    else if (f.type === "select") ctl = `<select id="f_${f.k}">${f.opts.map(o => `<option ${o === v ? "selected" : ""} value="${esc(o)}">${esc(o || "Choose…")}</option>`).join("")}</select>`;
+    else if (f.type === "chips") ctl = `<div class="chips" id="f_${f.k}">${SENSORS.map(s => `<button type="button" class="chip" aria-pressed="${(v || []).includes(s)}" data-s="${esc(s)}">${esc(s)}</button>`).join("")}</div>`;
+    else ctl = `<input id="f_${f.k}" type="${f.type === "date" ? "date" : "text"}" value="${esc(v)}" placeholder="${esc(f.ph || "")}">`;
+    return `<label class="f ${f.wide ? "wide" : ""} ${g ? "guess" : ""}" data-k="${f.k}">${lab}${ctl}</label>`;
+  }).join("");
+}
+function onFormInput(e){
+  const lab = e.target.closest("label.f"); if (!lab) return;
+  const k = lab.dataset.k; if (k === "sensors") return;
+  S.answers[k] = e.target.value; S.guessed.delete(k); lab.classList.remove("guess"); lab.querySelector(".tag")?.remove();
+  saveLocal(); renderRail();
+}
+function onFormClick(e){
+  const chip = e.target.closest(".chip"); if (!chip || !chip.closest("#f_sensors")) return;
+  e.preventDefault();
+  const on = chip.getAttribute("aria-pressed") !== "true"; chip.setAttribute("aria-pressed", on);
+  S.answers.sensors = $$("#f_sensors .chip").filter(c => c.getAttribute("aria-pressed") === "true").map(c => c.dataset.s);
+  S.guessed.delete("sensors"); saveLocal();
+}
+function renderFollowups(){
+  $("#observations").innerHTML = S.observations.map(o => `<li>${esc(o)}</li>`).join("");
+  $("#followups").innerHTML = S.followups.map((q, i) => `<div class="q"><p><strong>${esc(q.q)}</strong></p>${q.why ? `<p class="why">${esc(q.why)}</p>` : ""}${q.choices.length ? `<div class="chips">${q.choices.map(c => `<button type="button" class="chip" data-q="${i}" aria-pressed="${q.a === c}">${esc(c)}</button>`).join("")}</div>` : ""}<input type="text" id="fq_${i}" data-q="${i}" value="${esc(q.a)}" placeholder="Your answer"></div>`).join("");
+}
+function renderLoad(){
+  const live = S.files.filter(f => !f.junk), bytes = live.reduce((s, f) => s + f.size, 0);
+  $("#sampleBanner").hidden = !S.isSample;
+  $("#rootName").textContent = S.files.length ? `${S.rootName}/` : "No folder loaded";
+  const dirs = new Set(S.files.map(f => f.dir));
+  $("#stats").innerHTML = [["Files", fmtN(live.length)], ["Size", fmtBytes(bytes)], ["Folders", fmtN(dirs.size)], ["Groups", fmtN(S.clusters.length)], ["Junk", fmtN(S.files.length - live.length)], ["Duplicates?", fmtN(live.filter(f => f.dupOf).length)]].map(([k, v]) => `<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`).join("");
+  const byExt = new Map(); for (const f of live){ const k = f.ext || "(none)"; byExt.set(k, (byExt.get(k) || 0) + f.size); }
+  const top = [...byExt.entries()].sort((a, b) => b[1] - a[1]); const shown = top.slice(0, 7); const rest = top.slice(7).reduce((s, x) => s + x[1], 0);
+  if (rest) shown.push(["other", rest]);
+  const pal = ["#2f6b4c", "#b07d1f", "#4f7ea8", "#a8443d", "#7a5aa0", "#5a8f7b", "#8a6a4a", "#8c948e"];
+  $("#extbar").innerHTML = shown.map(([k, v], i) => `<i title="${esc(k)} ${fmtBytes(v)}" style="width:${(v / bytes * 100) || 0}%;background:${pal[i]}"></i>`).join("");
+  $("#extlegend").innerHTML = shown.map(([k, v], i) => `<span><em style="background:${pal[i]}"></em>${esc(k)} ${fmtBytes(v)}</span>`).join("");
+  $("#clusterPreview").innerHTML = S.clusters.slice(0, 60).map(c => `<tr><td><span class="path">${esc(c.dir || "(top level)")}</span></td><td><span class="path">${esc(c.pattern)}</span></td><td class="num">${fmtN(c.count)}</td><td class="num">${fmtBytes(c.bytes)}</td><td class="status" style="min-width:180px">${esc(clusterMeta(c)?.text || "")}</td><td>${c.dups ? `<span class="pill warn">${c.dups} dup?</span>` : ""}${c.dtype === "unsorted" ? ' <span class="pill bad">unknown</span>' : ""}</td></tr>`).join("") + (S.clusters.length > 60 ? `<tr><td colspan="6" class="status">+${S.clusters.length - 60} more groups</td></tr>` : "");
+}
+function renderPlanTable(){
+  $("#planTable").innerHTML = S.clusters.map(c => `<tr data-id="${c.id}">
+    <td style="min-width:200px"><div class="path">${esc(c.dir ? c.dir + "/" : "")}<b>${esc(c.pattern)}</b></div><div class="status path">${esc(c.examples.join(", "))}</div>${clusterMeta(c)?.text ? `<div class="status">Inside: ${esc(clusterMeta(c).text)}</div>` : ""}${c.note ? `<div class="status" style="color:var(--warn)">${esc(c.note)}</div>` : ""}${c.dups ? `<span class="pill warn">${c.dups} likely duplicate${c.dups > 1 ? "s" : ""}</span>` : ""}</td>
+    <td class="num">${fmtN(c.count)}<div class="status">${fmtBytes(c.bytes)}</div></td>
+    <td><select data-f="cat">${CATS.map(x => `<option ${x === c.cat ? "selected" : ""}>${x}</option>`).join("")}</select></td>
+    <td><input type="text" data-f="dtype" value="${esc(c.dtype)}"></td>
+    <td style="min-width:180px"><input type="text" data-f="folder" value="${esc(c.folder)}"></td>
+    <td><select data-f="rename">${[["keep", "clean original"], ["template", "template"], ["seq", "numbered"]].map(([v, l]) => `<option value="${v}" ${v === c.rename ? "selected" : ""}>${l}</option>`).join("")}</select></td>
+    <td><select data-f="dateSrc">${[["name", "name, then inside"], ["embedded", "inside file"], ["modified", "file time"], ["none", "no date"]].map(([v, l]) => `<option value="${v}" ${v === c.dateSrc ? "selected" : ""}>${l}</option>`).join("")}</select></td>
+    <td style="text-align:center"><input type="checkbox" data-f="include" ${c.exclude ? "" : "checked"} aria-label="Include group ${c.id}"></td></tr>`).join("");
+}
+function renderPlanOutputs(){
+  const copies = S.rows.filter(r => r.action === "copy");
+  const dups = copies.filter(r => r.dup).length, undated = copies.filter(r => r.new.includes("/undated/")).length, unsorted = copies.filter(r => r.new.startsWith("other/")).length;
+  $("#treeStats").innerHTML = `${fmtN(copies.length)} files · ${fmtN(S.rows.length - copies.length)} skipped` + (undated ? ` · <span class="pill warn">${undated} undated</span>` : "") + (unsorted ? ` · <span class="pill bad">${unsorted} unsorted</span>` : "") + (dups ? ` · <span class="pill warn">${dups} to review</span>` : "");
+  const root = {};
+  for (const r of copies){ const p = r.new.split("/"); p.pop(); let n = root; n.__n = (n.__n || 0) + 1; n.__b = (n.__b || 0) + r.size; for (const s of p){ n[s] = n[s] || {}; n = n[s]; n.__n = (n.__n || 0) + 1; n.__b = (n.__b || 0) + r.size; } }
+  const walk = (n, depth) => Object.keys(n).filter(k => !k.startsWith("__")).sort().map(k => { const ch = n[k]; const kids = Object.keys(ch).filter(x => !x.startsWith("__")); const lab = `${esc(k)}/ <span class="c">${fmtN(ch.__n)} files · ${fmtBytes(ch.__b)}</span>`; return kids.length ? `<details ${depth < 1 ? "open" : ""}><summary>${lab}</summary>${walk(ch, depth + 1)}</details>` : `<div style="margin-left:14px">${lab}</div>`; }).join("");
+  $("#tree").innerHTML = `<div><strong>${esc(destName())}/</strong></div>` + walk(root, 0) + (S.outputs.readme ? '<div style="margin-left:14px">README.md</div>' : "") + '<div style="margin-left:14px">${metaDir()}/ <span class="c">+ manifest.csv and chosen metadata files</span></div>';
+  $("#sessions").innerHTML = S.sessions.length ? S.sessions.map(x => `<tr><td class="mono">${S.settings.numbered ? x.n : "–"}</td><td class="mono">${x.date}</td><td>${esc([...x.dtypes].join(", "))}</td></tr>`).join("") : '<tr><td colspan="3" class="status">No dates found in file or folder names. Set a group\'s "Date from" to file time, or add the season year in the interview.</td></tr>';
+  renderMap();
+}
+function renderMap(){
+  const q = ($("#mapFilter").value || "").toLowerCase();
+  const list = S.rows.filter(r => !q || r.old.toLowerCase().includes(q) || (r.new || "").toLowerCase().includes(q));
+  $("#map").innerHTML = list.slice(0, 200).map(r => `<div><span>${esc(r.old)}</span><span class="arrow">→</span><span>${r.new ? esc(r.new) : `<span class="pill ${r.action === "skip:junk" ? "bad" : "warn"}">${r.action === "skip:junk" ? "skipped: junk" : "skipped: excluded"}</span>`}</span></div>`).join("") + (list.length > 200 ? `<p class="status">Showing 200 of ${fmtN(list.length)}. Filter to find others.</p>` : "");
+}
+function renderPlan(){
+  $("#tpl").value = S.settings.template; $("#strip").checked = S.settings.strip; $("#dupReview").checked = S.settings.dupReview; $("#numbered").checked = S.settings.numbered;
+  $("#planMsg").className = "status";
+  if (S.planSource === "rules") $("#planMsg").textContent = "Using quick rules based on file types and names.";
+  $("#planSummary").hidden = !S.planSummary; $("#planSummary").textContent = S.planSummary;
+  renderPlanTable(); renderPlanOutputs(); renderRail();
+}
+const OUTS = [["readme", "README.md", "What the data is, folder layout, naming rules, how to cite."], ["miappe", "MIAPPE sheet", "miappe.tsv in the metadata folder: plant phenotyping experiment checklist, pre-filled."], ["croissant", "Croissant JSON-LD", "croissant.json in the metadata folder: ML-ready dataset description (draft)."], ["embedded", "Per-file metadata tables (optional)", "One CSV per data type: capture time, GPS, camera, LiDAR bounds, bands. Handy for reuse; not needed for FAIR. The dataset summary goes into README/MIAPPE/Croissant either way."], ["fair", "FAIR report", "FAIR_report.md in the metadata folder: 15 sub-principles before/after and next steps."], ["checksum", "SHA-256 checksums", "Script verifies every copy. Slower on big LiDAR/HSI folders."]];
+let curTab = "organize.py";
+function kitFiles(){
+  const x = { "organize.py": genScript(), "HOW_TO_RUN.txt": genHowTo(), "plan_preview.csv": genPlanCsv() };
+  for (const [k, v] of Object.entries(extras())) x[k.replace(/^(01_)?metadata\//, "")] = v;
+  return x;
+}
+function renderExport(){
+  $("#outChecks").innerHTML = OUTS.map(([k, t, d]) => `<label class="check"><input type="checkbox" id="o_${k}" data-o="${k}" ${S.outputs[k] ? "checked" : ""}><span><b>${t}</b><span>${d}</span></span></label>`).join("");
+  const t = fairScores(); const c = v => `<span class="sc ${v === 1 ? "s1" : v === .5 ? "s5" : "s0"}">${v === .5 ? "0.5" : v}</span>`;
+  $("#fairTable").innerHTML = `<thead><tr><th>Sub-principle</th><th>Before</th><th>After organizing</th><th>After deposit</th></tr></thead><tbody>${SUBS.map(([id, m]) => `<tr><td><span class="mono">${id}</span> ${esc(m)}</td><td>${c(t.B[id])}</td><td>${c(t.O[id])}</td><td>${c(t.D[id])}</td></tr>`).join("")}<tr><td><strong>Mean of 15</strong></td><td class="mono">${t.sB.pct.toFixed(0)}%</td><td class="mono">${t.sO.pct.toFixed(0)}%</td><td class="mono">${t.sD.pct.toFixed(0)}%</td></tr><tr><td><strong>F·A·I·R</strong> (weakest link)</td><td class="mono">${t.sB.prod.toFixed(3)}</td><td class="mono">${t.sO.prod.toFixed(3)}</td><td class="mono">${t.sD.prod.toFixed(3)}</td></tr></tbody>`;
+  const d = destName();
+  $("#howto").innerHTML = [["Preview (changes nothing)", `python organize.py "${S.rootName}" "${d}"`], ["Copy into the new layout", `python organize.py "${S.rootName}" "${d}" --apply`], ["Undo", `python organize.py --undo "${d}/${metaDir()}/manifest.csv"`]].map(([l, cmd]) => `<div><div class="status">${l}</div><div class="cmd"><code>${esc(cmd)}</code><button class="btn" data-copy="${esc(cmd)}">Copy</button></div></div>`).join("");
+  const files = kitFiles();
+  if (!files[curTab]) curTab = "organize.py";
+  $("#tabs").innerHTML = Object.keys(files).map(k => `<button role="tab" aria-selected="${k === curTab}" data-tab="${esc(k)}">${esc(k)}</button>`).join("");
+  const txt = files[curTab];
+  $("#preview").textContent = txt.length > 40000 ? txt.slice(0, 40000) + "\n\n… (preview cut; the downloaded file is complete)" : txt;
+  $("#tabNote").textContent = `${fmtN(txt.split("\n").length)} lines · ${fmtBytes(new Blob([txt]).size)}`;
+  $("#saveZip").disabled = !downloadsNs || !window.JSZip || !S.rows.length;
+  $("#saveMsg").textContent = !downloadsNs ? "Saving files isn't available in this view. Use the copy buttons instead." : !window.JSZip ? "The zip library did not load. Use the copy buttons instead." : "";
+  renderRail();
+}
+function renderCuratorStatus(){
+  const on = !!sampleFn;
+  $("#railCurator").innerHTML = on ? '<span class="dot on"></span>Ready. Runs on your Claude usage, only when you press a curator button.' : '<span class="dot off"></span>Not available in this view. Rules-only mode still works end to end.';
+  $("#askCurator").disabled = !on; $("#planCurator").disabled = !on;
+}
+function renderRail(){
+  const live = S.files.filter(f => !f.junk);
+  const copies = S.rows.filter(r => r.action === "copy").length;
+  $("#railStats").innerHTML = [["Folder", esc(S.rootName)], ["Files", fmtN(live.length)], ["Size", fmtBytes(live.reduce((s, f) => s + f.size, 0))], ["Groups", fmtN(S.clusters.length)], ["Planned", fmtN(copies)], ["Plan by", S.planSource]].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
+  const t = fairScores();
+  $("#railFair").innerHTML = [["Before", t.sB], ["Organized", t.sO], ["Deposited", t.sD]].map(([k, s]) => `<dt>${k}</dt><dd>${s.pct.toFixed(0)}% · ${s.prod.toFixed(3)}</dd>`).join("");
+}
+function go(n){
+  n = +n; S.step = n;
+  $$(".step").forEach(s => s.hidden = s.id !== "s" + n);
+  $$("nav.steps button").forEach(b => { const k = +b.dataset.go; b.setAttribute("aria-current", k === n ? "step" : "false"); b.classList.toggle("done", k < n); });
+  if (n === 3){ buildPlan(); renderPlan(); }
+  if (n === 4){ buildPlan(); renderExport(); }
+  window.scrollTo(0, 0);
+}
+function renderAll(){ renderLoad(); renderMeta(); renderForm(); renderFollowups(); renderPlan(); if (S.step === 4) renderExport(); renderRail(); }
+
+// ---------------- events ----------------
+async function copyText(text, btn){
+  try { await navigator.clipboard.writeText(text); if (btn){ const o = btn.textContent; btn.textContent = "Copied"; setTimeout(() => btn.textContent = o, 1400); } }
+  catch { const r = document.createRange(); r.selectNodeContents($("#preview")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); if (btn) btn.textContent = "Select + Ctrl/Cmd C"; }
+}
+let planTimer;
+const replan = () => { clearTimeout(planTimer); planTimer = setTimeout(() => { buildPlan(); renderPlanOutputs(); renderRail(); }, 150); };
+document.addEventListener("click", e => {
+  const g = e.target.closest("[data-go]"); if (g){ go(g.dataset.go); return; }
+  const cp = e.target.closest("[data-copy]"); if (cp){ copyText(cp.dataset.copy, cp); return; }
+  const tab = e.target.closest("[data-tab]"); if (tab){ curTab = tab.dataset.tab; renderExport(); return; }
+  const qc = e.target.closest(".chip[data-q]"); if (qc){ const q = S.followups[+qc.dataset.q]; q.a = qc.textContent; renderFollowups(); return; }
+});
+$("#form").addEventListener("input", onFormInput);
+$("#form").addEventListener("change", onFormInput);
+$("#form").addEventListener("click", onFormClick);
+$("#followups").addEventListener("input", e => { const i = e.target.dataset.q; if (i != null && e.target.tagName === "INPUT"){ S.followups[+i].a = e.target.value; $$(`.chip[data-q="${i}"]`).forEach(c => c.setAttribute("aria-pressed", c.textContent === e.target.value)); } });
+$("#askCurator").onclick = askCurator;
+$("#stopCurator").onclick = () => curatorCtl?.abort();
+$("#planCurator").onclick = planWithCurator;
+$("#stopPlan").onclick = () => planCtl?.abort();
+$("#planRules").onclick = () => { for (const c of S.clusters) Object.assign(c, guess(c)); S.planSource = "rules"; S.planSummary = ""; buildPlan(); renderPlan(); };
+$("#planTable").addEventListener("change", e => {
+  const tr = e.target.closest("tr[data-id]"); if (!tr) return;
+  const c = S.clusters.find(x => x.id === tr.dataset.id); const f = e.target.dataset.f;
+  if (f === "include") c.exclude = !e.target.checked;
+  else if (f === "folder"){ c.folder = cleanFolder(e.target.value) || `${c.cat}/${seg(c.dtype)}`; e.target.value = c.folder; }
+  else if (f === "dtype"){ c.dtype = seg(e.target.value) || c.dtype; e.target.value = c.dtype; }
+  else c[f] = e.target.value;
+  replan();
+});
+$("#tpl").addEventListener("input", e => { S.settings.template = e.target.value || "{stem}"; saveLocal(); replan(); });
+$("#strip").addEventListener("change", e => { S.settings.strip = e.target.checked; saveLocal(); replan(); });
+$("#dupReview").addEventListener("change", e => { S.settings.dupReview = e.target.checked; saveLocal(); replan(); });
+$("#numbered").addEventListener("change", e => { S.settings.numbered = e.target.checked; saveLocal(); replan(); });
+$("#mapFilter").addEventListener("input", renderMap);
+$("#outChecks").addEventListener("change", e => { const k = e.target.dataset.o; if (k){ S.outputs[k] = e.target.checked; saveLocal(); renderExport(); } });
+$("#copyScript").onclick = e => copyText(genScript(), e.currentTarget);
+$("#copyTab").onclick = e => copyText(kitFiles()[curTab], e.currentTarget);
+$("#saveZip").onclick = async () => {
+  const msg = $("#saveMsg"); msg.className = "status"; msg.textContent = "Building the zip…";
+  try {
+    const zip = new JSZip(); const dir = zip.folder(destName() + "_organize_kit");
+    for (const [k, v] of Object.entries(kitFiles())) dir.file(k, v);
+    const blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE" });
+    await downloadsNs.save({ filename: destName() + "_organize_kit.zip", data: blob });
+    msg.textContent = "Saved. Unzip it next to your messy folder and follow HOW_TO_RUN.txt.";
+  } catch (e){
+    msg.className = "status err";
+    msg.textContent = e?.code === "declined" ? "Download cancelled." : e?.code === "rate_limited" ? "A save prompt is already open. Finish it, then try again." : "Could not save the zip here. Use the copy buttons instead.";
+  }
+};
+const drop = $("#drop");
+["dragenter", "dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, () => drop.classList.remove("over")));
+drop.addEventListener("drop", async e => {
+  e.preventDefault();
+  const items = [...(e.dataTransfer.items || [])].map(i => i.webkitGetAsEntry?.()).filter(Boolean);
+  if (!items.length) return;
+  drop.querySelector("strong").textContent = "Reading folder…";
+  const out = []; for (const it of items) await readEntries(it, "", out);
+  drop.querySelector("strong").textContent = "Drop a folder here, or click to choose one";
+  if (out.length) ingest(out, false);
+});
+$("#pick").addEventListener("change", e => {
+  const list = [...e.target.files].map(f => ({ path: f.webkitRelativePath || f.name, size: f.size, mtime: f.lastModified, file: f }));
+  if (list.length) ingest(list, false);
+  e.target.value = "";
+});
+$("#loadSample").onclick = () => ingest(sampleFolder(), true);
+$("#scanMeta").onclick = scanEmbedded;
+$("#stopMeta").onclick = () => metaCtl?.abort();
+
+// ---------------- embedded metadata (read locally, headers only) ----------------
+S.meta = new Map(); S.metaIsExample = false;
+let metaCtl = null;
+const stemMeta = new Map();
+function metaKind(ext, name){
+  if ([".jpg",".jpeg",".dng",".tif",".tiff",".heic",".png",".cr2",".cr3",".nef",".arw"].includes(ext)) return "exif";
+  if ([".las",".laz"].includes(ext)) return "las";
+  if (ext === ".hdr") return "envi";
+  if (ext === ".ply") return "ply";
+  if (ext === ".vcf" || ext === ".vcf.gz") return "vcf";
+  if ([".csv",".tsv"].includes(ext)) return "table";
+  if (ext === ".json") return "json";
+  if ([".docx",".xlsx",".pptx"].includes(ext)) return "office";
+  if (ext === ".mrk") return "mrk";
+  return null;
+}
+const KIND_LABEL = { exif: "Images (EXIF/XMP)", las: "LiDAR (LAS header)", envi: "Hyperspectral (ENVI header)", ply: "PLY / splats", vcf: "Genotypes (VCF header)", table: "Tables (columns)", json: "JSON (camera poses)", office: "Office documents", mrk: "DJI trigger logs" };
+async function sliceBytes(file, start, len){ return new Uint8Array(await file.slice(start, start + len).arrayBuffer()); }
+async function headText(file, max, gz){
+  if (!gz) return new TextDecoder("utf-8").decode(await sliceBytes(file, 0, max));
+  let out = "";
+  try {
+    const reader = file.slice(0, Math.min(file.size, max * 4)).stream().pipeThrough(new DecompressionStream("gzip")).getReader();
+    const dec = new TextDecoder("utf-8");
+    while (out.length < max){
+      let r; try { r = await reader.read(); } catch { break; }
+      if (r.done) break; out += dec.decode(r.value, { stream: true });
+    }
+    reader.cancel().catch(() => {});
+  } catch {}
+  return out;
+}
+const num = v => { const n = parseFloat(String(v ?? "").replace(/^\+/, "")); return Number.isFinite(n) ? n : null; };
+const isoLocal = d => d instanceof Date && !isNaN(d) ? `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}` : (typeof d === "string" && /^\d{4}[:-]\d\d[:-]\d\d/.test(d) ? d.replace(/^(\d{4}):(\d\d):(\d\d)/, "$1-$2-$3").replace(" ", "T") : null);
+
+async function parseExif(file){
+  if (!window.exifr) throw new Error("exif library not loaded");
+  const x = await window.exifr.parse(file, { tiff: true, exif: true, gps: true, xmp: true, ifd1: false, icc: false, iptc: false, jfif: false, interop: false, mergeOutput: true, reviveValues: true, translateValues: true }) || {};
+  return {
+    captured: isoLocal(x.DateTimeOriginal || x.CreateDate || x.DateTime),
+    make: x.Make || "", model: x.Model || x.CameraModelName || "",
+    width: x.ExifImageWidth || x.ImageWidth || null, height: x.ExifImageHeight || x.ImageHeight || null,
+    focal_mm: num(x.FocalLength), iso: num(x.ISO), exposure_s: num(x.ExposureTime),
+    lat: num(x.latitude), lon: num(x.longitude), alt_abs_m: num(x.AbsoluteAltitude ?? x.GPSAltitude), alt_rel_m: num(x.RelativeAltitude),
+    gimbal_pitch: num(x.GimbalPitchDegree), yaw: num(x.FlightYawDegree), rtk_flag: x.RtkFlag ?? "", band: x.BandName || ""
+  };
+}
+async function parseLas(file){
+  const b = await sliceBytes(file, 0, 131072); const dv = new DataView(b.buffer);
+  const str = (o, n) => String.fromCharCode(...b.slice(o, o + n)).replace(/\0[\s\S]*$/, "").trim();
+  if (str(0, 4) !== "LASF") throw new Error("not LAS");
+  const vmaj = b[24], vmin = b[25], doy = dv.getUint16(90, true), yr = dv.getUint16(92, true);
+  const hsize = dv.getUint16(94, true), nvlr = dv.getUint32(100, true);
+  let n = dv.getUint32(107, true);
+  if (vmin >= 4 && hsize >= 375){ const big = Number(dv.getBigUint64(247, true)); if (big > 0) n = big; }
+  const f = o => dv.getFloat64(o, true);
+  let crs = "", epsg = "", off = hsize;
+  for (let i = 0; i < nvlr && off + 54 <= b.length; i++){
+    const rid = dv.getUint16(off + 18, true), len = dv.getUint16(off + 20, true), d = off + 54;
+    if (d + len > b.length) break;
+    if (rid === 2112){
+      const wkt = str(d, len);
+      crs = (wkt.match(/^\s*(?:PROJCS|PROJCRS|GEOGCS|GEOGCRS|COMPD_CS|COMPOUNDCRS|GEODCRS)\["([^"]+)"/) || [, ""])[1];
+      const ids = [...wkt.matchAll(/(?:AUTHORITY\["EPSG",\s*"?(\d+)"?\]|ID\["EPSG",\s*(\d+)\])/g)];
+      if (ids.length){ const last = ids[ids.length - 1]; epsg = last[1] || last[2]; }
+    }
+    if (rid === 34735 && len >= 8){
+      const nk = dv.getUint16(d + 6, true);
+      for (let k = 0; k < nk && d + 8 + k * 8 + 8 <= b.length; k++){
+        const ko = d + 8 + k * 8, key = dv.getUint16(ko, true), loc = dv.getUint16(ko + 2, true), val = dv.getUint16(ko + 6, true);
+        if (loc === 0 && (key === 3072 || (key === 2048 && !epsg))) epsg = String(val);
+      }
+    }
+    off = d + len;
+  }
+  let created = null;
+  if (yr > 1990 && yr < 2100 && doy > 0 && doy < 367){ const dt = new Date(Date.UTC(yr, 0, doy)); created = dt.toISOString().slice(0, 10); }
+  return { version: `${vmaj}.${vmin}`, points: n, point_format: b[104] & 0x3f, system: str(26, 32), software: str(58, 32), created, crs, epsg,
+    min_x: f(187), max_x: f(179), min_y: f(203), max_y: f(195), min_z: f(219), max_z: f(211) };
+}
+function parseEnviText(t){
+  const o = {}; const re = /^\s*([^=\n{}]+?)\s*=\s*(\{[\s\S]*?\}|[^\n]*)/gm; let m;
+  while ((m = re.exec(t))) o[m[1].trim().toLowerCase()] = m[2].trim().replace(/^\{|\}$/g, "").trim();
+  return o;
+}
+async function parseEnvi(file){
+  const t = await headText(file, 262144);
+  if (!/^\s*ENVI/i.test(t)) throw new Error("not ENVI");
+  const o = parseEnviText(t);
+  const wl = (o["wavelength"] || "").split(/[,\s]+/).map(Number).filter(Number.isFinite);
+  const acqKey = Object.keys(o).find(k => /acquisition|capture|date|time/.test(k) && !/data type/.test(k));
+  let acquired = null;
+  if (acqKey){ const d = o[acqKey].match(/(20\d\d)[-:\/](\d\d)[-:\/](\d\d)/); if (d) acquired = `${d[1]}-${d[2]}-${d[3]}`; }
+  return { samples: +o.samples || null, lines: +o.lines || null, bands: +o.bands || null, interleave: o.interleave || "", data_type: o["data type"] || "",
+    wl_count: wl.length || null, wl_min: wl.length ? Math.min(...wl) : null, wl_max: wl.length ? Math.max(...wl) : null, wl_units: o["wavelength units"] || "",
+    sensor: o["sensor type"] || o["camera"] || "", acquired, description: (o.description || "").slice(0, 120) };
+}
+async function parsePly(file){
+  const t = new TextDecoder("latin1").decode(await sliceBytes(file, 0, 16384));
+  if (!t.startsWith("ply")) throw new Error("not PLY");
+  const head = t.split("end_header")[0];
+  const vx = +(head.match(/element\s+vertex\s+(\d+)/) || [, 0])[1], fc = +(head.match(/element\s+face\s+(\d+)/) || [, 0])[1];
+  const props = [...head.matchAll(/property\s+(?:list\s+\S+\s+\S+|\S+)\s+(\S+)/g)].map(m => m[1]);
+  const rest = props.filter(p => /^f_rest_\d+$/.test(p)).length;
+  const splat = props.includes("f_dc_0") && props.includes("opacity");
+  return { format: (head.match(/format\s+(\S+)/) || [, ""])[1], vertices: vx, faces: fc, properties: props.length, gaussian_splat: splat,
+    sh_degree: splat ? Math.round(Math.sqrt(rest / 3 + 1) - 1) : null, has_color: props.includes("red") || splat, has_normals: props.includes("nx") };
+}
+async function parseVcf(file, gz){
+  const t = await headText(file, 1048576, gz);
+  if (!/^##fileformat=VCF/.test(t)) throw new Error("not VCF");
+  const lines = t.split("\n"); const chrom = lines.find(l => l.startsWith("#CHROM"));
+  return { fileformat: (t.match(/^##fileformat=(\S+)/m) || [, ""])[1], reference: (t.match(/^##reference=(.+)$/m) || [, ""])[1].slice(0, 100),
+    source: (t.match(/^##source=(.+)$/m) || [, ""])[1].slice(0, 60), contigs: lines.filter(l => l.startsWith("##contig")).length,
+    samples: chrom ? chrom.split("\t").length - 9 : null, header_complete: !!chrom };
+}
+async function parseTable(file){
+  const all = file.size <= 1048576;
+  const t = await headText(file, all ? file.size : 262144);
+  const lines = t.split(/\r?\n/); if (!all) lines.pop();
+  const first = lines[0] || "";
+  const delim = ["\t", ",", ";"].map(d => [d, first.split(d).length]).sort((a, b) => b[1] - a[1])[0][0];
+  const cols = first.split(delim).map(s => s.trim().replace(/^"|"$/g, ""));
+  const nonEmpty = lines.filter(l => l.trim()).length;
+  const rows = all ? Math.max(0, nonEmpty - 1) : Math.round(file.size / (t.length / Math.max(1, lines.length))) - 1;
+  return { columns: cols.length, header: cols.slice(0, 15).join(" | "), rows, rows_exact: all, delimiter: delim === "\t" ? "tab" : delim };
+}
+async function parseJson(file){
+  if (file.size > 20e6) throw new Error("too big");
+  const j = JSON.parse(await file.text());
+  if (Array.isArray(j?.frames)) return { frames: j.frames.length, camera_model: j.camera_model || "", width: j.w || null, height: j.h || null, fl_x: j.fl_x || null, keys: Object.keys(j).slice(0, 12).join(" ") };
+  return { keys: Object.keys(j || {}).slice(0, 12).join(" ") };
+}
+async function parseOffice(file){
+  if (!window.JSZip || file.size > 40e6) throw new Error("skip");
+  const z = await JSZip.loadAsync(file); const core = await z.file("docProps/core.xml")?.async("string") || "";
+  const g = tag => (core.match(new RegExp(`<${tag}[^>]*>([^<]*)</${tag}>`)) || [, ""])[1];
+  const wb = await z.file("xl/workbook.xml")?.async("string") || "";
+  return { title: g("dc:title"), creator: g("dc:creator"), last_modified_by: g("cp:lastModifiedBy"), created: (g("dcterms:created") || "").slice(0, 19) || null, modified: (g("dcterms:modified") || "").slice(0, 19), sheets: [...wb.matchAll(/<sheet [^>]*name="([^"]+)"/g)].map(m => m[1]).join(" | ") };
+}
+async function parseMrk(file){ const t = await headText(file, 2e6); return { triggers: t.split(/\r?\n/).filter(l => /^\d+\s/.test(l)).length }; }
+const PARSERS = { exif: parseExif, las: parseLas, envi: parseEnvi, ply: parsePly, vcf: f => parseVcf(f, /\.gz$/i.test(f.name)), table: parseTable, json: parseJson, office: parseOffice, mrk: parseMrk };
+
+function indexStemMeta(){
+  stemMeta.clear();
+  for (const f of S.files){ const m = S.meta.get(f.path); if (m && m.kind === "envi") stemMeta.set(f.dir + "/" + f.stem.toLowerCase(), m); }
+}
+function metaFor(f){ return S.meta.get(f.path) || stemMeta.get(f.dir + "/" + f.stem.toLowerCase()) || null; }
+function embeddedDate(f){
+  const m = metaFor(f); if (!m || m.error) return null;
+  const v = m.captured || m.acquired || m.created;
+  return v && /^\d{4}-\d\d-\d\d/.test(v) ? v.slice(0, 10) : null;
+}
+
+async function scanEmbedded(){
+  const targets = S.files.filter(f => !f.junk && f.file && metaKind(f.ext, f.name));
+  if (!targets.length) return;
+  const btn = $("#scanMeta"), stop = $("#stopMeta"), bar = $("#metaProg"), msg = $("#metaMsg");
+  metaCtl = new AbortController(); const sig = metaCtl.signal;
+  btn.disabled = true; stop.hidden = false; bar.hidden = false; bar.max = targets.length; bar.value = 0; msg.className = "status";
+  S.meta = new Map(); S.metaIsExample = false;
+  let i = 0, done = 0, failed = 0;
+  const worker = async () => {
+    while (i < targets.length && !sig.aborted){
+      const f = targets[i++]; const kind = metaKind(f.ext, f.name);
+      try { S.meta.set(f.path, { kind, ...(await PARSERS[kind](f.file)) }); }
+      catch { S.meta.set(f.path, { kind, error: true }); failed++; }
+      done++; if (done % 25 === 0 || done === targets.length){ bar.value = done; msg.textContent = `Reading headers… ${fmtN(done)} of ${fmtN(targets.length)}`; }
+    }
+  };
+  await Promise.all(Array.from({ length: 6 }, worker));
+  indexStemMeta();
+  const exifMissing = !window.exifr && targets.some(f => metaKind(f.ext) === "exif");
+  msg.textContent = `${sig.aborted ? "Stopped. " : ""}Read ${fmtN(done - failed)} of ${fmtN(targets.length)} files` + (failed ? ` (${fmtN(failed)} had no readable header)` : "") + (exifMissing ? ". Image EXIF could not be read: the EXIF library did not load." : ".");
+  btn.disabled = false; stop.hidden = true; bar.hidden = true;
+  afterMeta();
+}
+function afterMeta(){
+  applyEmbeddedGuesses();
+  buildPlan(); renderLoad(); renderMeta(); renderForm(); if (S.step === 3) renderPlan(); if (S.step === 4) renderExport(); renderRail();
+}
+
+// ---------- summaries ----------
+const median = a => { const s = a.filter(x => x != null).sort((x, y) => x - y); return s.length ? s[Math.floor(s.length / 2)] : null; };
+const range = a => { const s = a.filter(x => x != null); return s.length ? [Math.min(...s), Math.max(...s)] : null; };
+const uniq = a => [...new Set(a.filter(Boolean))];
+const r1 = x => x == null ? "" : Math.abs(x) >= 100 ? x.toFixed(0) : x.toFixed(1);
+function summarizeRecs(recs){
+  const ok = recs.filter(r => !r.error); if (!ok.length) return "";
+  const k = ok[0].kind; const P = [];
+  if (k === "exif"){
+    P.push(uniq(ok.map(r => [r.make, r.model].filter(Boolean).join(" "))).slice(0, 2).join(", ") || "no camera tag");
+    const g = ok.filter(r => r.lat != null).length; P.push(`${g}/${ok.length} with GPS`);
+    const ar = range(ok.map(r => r.alt_rel_m)); if (ar) P.push(`${r1(ar[0])}–${r1(ar[1])} m above takeoff`);
+    const bands = uniq(ok.map(r => r.band)); if (bands.length) P.push("bands " + bands.join(", "));
+    const t = ok.map(r => r.captured).filter(Boolean).sort(); if (t.length) P.push(t[0].slice(0, 16).replace("T", " ") + (t.length > 1 && t[t.length - 1].slice(0, 10) !== t[0].slice(0, 10) ? " → " + t[t.length - 1].slice(0, 10) : t.length > 1 ? "–" + t[t.length - 1].slice(11, 16) : ""));
+  } else if (k === "las"){
+    P.push("LAS " + uniq(ok.map(r => r.version)).join("/"), fmtN(ok.reduce((s, r) => s + (r.points || 0), 0)) + " points");
+    const c = uniq(ok.map(r => r.crs || (r.epsg ? "EPSG:" + r.epsg : ""))); P.push(c.length ? c.join(", ") : "no CRS in header");
+    const sw = uniq(ok.map(r => r.software)); if (sw.length) P.push(sw[0]);
+  } else if (k === "envi"){
+    const b = uniq(ok.map(r => r.bands)); P.push(b.join("/") + " bands");
+    const lo = range(ok.map(r => r.wl_min)), hi = range(ok.map(r => r.wl_max)); if (lo && hi) P.push(`${r1(lo[0])}–${r1(hi[1])} ${ok[0].wl_units || ""}`.trim());
+    const sz = uniq(ok.map(r => r.samples && r.lines ? `${r.samples}×${r.lines}` : "")); if (sz.length) P.push(sz.slice(0, 2).join(", ") + " px");
+    const il = uniq(ok.map(r => r.interleave)); if (il.length) P.push(il.join("/"));
+  } else if (k === "ply"){
+    const s = ok.filter(r => r.gaussian_splat).length;
+    P.push(s ? `${s} Gaussian splat file${s > 1 ? "s" : ""}` + (ok.find(r => r.sh_degree != null) ? ` (SH degree ${ok.find(r => r.sh_degree != null).sh_degree})` : "") : "point cloud / mesh");
+    P.push(fmtN(ok.reduce((a, r) => a + (r.vertices || 0), 0)) + " vertices");
+  } else if (k === "vcf"){
+    P.push(uniq(ok.map(r => r.samples)).join("/") + " samples"); const ref = uniq(ok.map(r => r.reference)); if (ref.length) P.push("ref " + ref[0]);
+    P.push(uniq(ok.map(r => r.contigs)).join("/") + " contigs");
+  } else if (k === "table"){
+    P.push(uniq(ok.map(r => r.columns)).join("/") + " columns", (ok[0].rows_exact ? "" : "~") + fmtN(ok.reduce((a, r) => a + (r.rows || 0), 0)) + " rows", "cols: " + ok[0].header.slice(0, 70));
+  } else if (k === "json"){
+    const fr = ok.filter(r => r.frames); P.push(fr.length ? `${fr.reduce((a, r) => a + r.frames, 0)} camera frames` + (fr[0].camera_model ? ", " + fr[0].camera_model : "") : "keys: " + ok[0].keys);
+  } else if (k === "office"){
+    const who = uniq(ok.map(r => r.creator)); if (who.length) P.push("by " + who.slice(0, 2).join(", "));
+    const c = ok.map(r => r.created).filter(Boolean).sort(); if (c.length) P.push("created " + c[0].slice(0, 10));
+    const sh = uniq(ok.map(r => r.sheets)); if (sh.length) P.push("sheets: " + sh[0].slice(0, 50));
+  } else if (k === "mrk"){ P.push(fmtN(ok.reduce((a, r) => a + r.triggers, 0)) + " camera triggers"); }
+  return P.filter(Boolean).join(" · ");
+}
+function clusterMeta(c){ const recs = c.files.map(f => S.meta.get(f.path)).filter(Boolean); return recs.length ? { n: recs.length, text: summarizeRecs(recs) } : null; }
+
+// ---------- guesses for the interview ----------
+function embeddedFacts(){
+  const recs = [...S.meta.values()].filter(r => !r.error);
+  const gps = recs.filter(r => r.kind === "exif" && r.lat != null && r.lon != null);
+  const dates = [...S.files.map(f => embeddedDate(f))].filter(Boolean).sort();
+  const sensors = new Set();
+  for (const r of recs){
+    if (r.kind === "exif" && /dji|hasselblad|micasense|parrot|sentera/i.test(r.make + " " + r.model)){ sensors.add(r.band && !/rgb/i.test(r.band) ? "UAV multispectral" : "UAV RGB"); }
+    else if (r.kind === "exif") sensors.add("Handheld photos");
+    if (r.kind === "las") sensors.add("LiDAR");
+    if (r.kind === "envi") sensors.add("Hyperspectral");
+    if (r.kind === "vcf") sensors.add("Genotypes");
+    if ((r.kind === "ply" && r.gaussian_splat) || (r.kind === "json" && r.frames)) sensors.add("3D reconstruction (SfM/NeRF/3DGS)");
+  }
+  const lat = median(gps.map(r => r.lat)), lon = median(gps.map(r => r.lon));
+  const bbox = gps.length ? [Math.min(...gps.map(r => r.lat)), Math.min(...gps.map(r => r.lon)), Math.max(...gps.map(r => r.lat)), Math.max(...gps.map(r => r.lon))] : null;
+  return { lat, lon, bbox, start: dates[0] || null, end: dates[dates.length - 1] || null, sensors: [...sensors], nGps: gps.length };
+}
+function applyEmbeddedGuesses(){
+  const e = embeddedFacts(); const put = (k, v) => { const cur = S.answers[k]; if (v && (!cur || (Array.isArray(cur) && !cur.length))){ S.answers[k] = v; S.guessed.add(k); } };
+  if (e.lat != null) put("latlon", `${e.lat.toFixed(5)}, ${e.lon.toFixed(5)}`);
+  put("start", e.start); put("end", e.end); if (e.start) put("year", e.start.slice(0, 4));
+  if (e.sensors.length) put("sensors", e.sensors.filter(s => SENSORS.includes(s)));
+}
+
+// ---------- outputs ----------
+const META_COLS = {
+  exif: ["captured","make","model","width","height","focal_mm","iso","exposure_s","lat","lon","alt_abs_m","alt_rel_m","gimbal_pitch","yaw","rtk_flag","band"],
+  las: ["version","points","point_format","crs","epsg","created","system","software","min_x","max_x","min_y","max_y","min_z","max_z"],
+  envi: ["samples","lines","bands","interleave","data_type","wl_count","wl_min","wl_max","wl_units","sensor","acquired","description"],
+  ply: ["format","vertices","faces","properties","gaussian_splat","sh_degree","has_color","has_normals"],
+  vcf: ["fileformat","samples","contigs","reference","source","header_complete"],
+  table: ["columns","rows","rows_exact","delimiter","header"],
+  json: ["frames","camera_model","width","height","fl_x","keys"],
+  office: ["title","creator","last_modified_by","created","modified","sheets"],
+  mrk: ["triggers"]
+};
+function embeddedTables(){
+  const byKey = new Map(); const newOf = new Map(S.rows.filter(r => r.new).map(r => [r.old, r]));
+  for (const f of S.files){
+    const m = S.meta.get(f.path); const row = newOf.get(f.path); if (!m || m.error || !row) continue;
+    const key = `${row.dtype}_${m.kind}`; if (!byKey.has(key)) byKey.set(key, { kind: m.kind, rows: [] });
+    byKey.get(key).rows.push([row.new, f.path, ...META_COLS[m.kind].map(c => m[c] ?? "")]);
+  }
+  const q = v => { v = String(v ?? ""); return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v; };
+  const out = {};
+  for (const [key, { kind, rows }] of byKey) out[`${metaDir()}/embedded/${key}.csv`] = [["new_path", "original_path", ...META_COLS[kind]].join(","), ...rows.map(r => r.map(q).join(","))].join("\n") + "\n";
+  return out;
+}
+function embeddedReadmeSection(){
+  if (!S.meta.size) return [];
+  const L = ["## Metadata read from inside the files", "", `Read from file headers (EXIF/XMP, LAS, ENVI, PLY, VCF, table columns)${S.metaIsExample ? " — EXAMPLE VALUES from the demo folder" : ""}. ${S.outputs.embedded ? `Full per-file tables are in \`${metaDir()}/embedded/\`.` : ""}`, "", "| Data type | Files read | Summary |", "|---|---|---|"];
+  for (const c of S.clusters){ const cm = clusterMeta(c); if (cm && cm.text) L.push(`| ${c.dtype} (${c.pattern}) | ${cm.n} | ${cm.text.replace(/\|/g, "/")} |`); }
+  const e = embeddedFacts();
+  if (e.bbox) L.push("", `GPS extent of geotagged images: lat ${e.bbox[0].toFixed(5)} to ${e.bbox[2].toFixed(5)}, lon ${e.bbox[1].toFixed(5)} to ${e.bbox[3].toFixed(5)} (${e.nGps} images).`);
+  L.push("");
+  return L;
+}
+
+// ---------- example metadata for the demo folder ----------
+function sampleMeta(){
+  S.meta = new Map(); S.metaIsExample = true;
+  let k = 0; const jit = (a, s) => a + ((k++ * 7919) % 1000 / 1000 - 0.5) * s;
+  for (const f of S.files){
+    if (f.junk) continue; const kind = metaKind(f.ext, f.name); if (!kind) continue;
+    const d = findDate(f.name) || findDate(f.dir);
+    if (kind === "exif" && /DJI_/.test(f.name)){
+      const ms = /_MS_/.test(f.name), t = (f.name.match(/DJI_(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/) || []);
+      S.meta.set(f.path, { kind, captured: t[1] ? `${t[1]}-${t[2]}-${t[3]}T${t[4]}:${t[5]}:${t[6]}` : null, make: "DJI", model: ms ? "M3M" : "FC8482", width: ms ? 2592 : 5280, height: ms ? 1944 : 3956, focal_mm: ms ? 4.3 : 12.3, lat: jit(42.0205, 0.002), lon: jit(-93.7746, 0.003), alt_abs_m: jit(338, 0.4), alt_rel_m: jit(30, 0.6), gimbal_pitch: -90, yaw: 88.4, rtk_flag: "50", band: ms ? "NIR" : "" });
+    } else if (kind === "exif" && /IMG_/.test(f.name)) S.meta.set(f.path, { kind, captured: "2025-07-14T16:02:11", make: "Apple", model: "iPhone 15", width: 4032, height: 3024, lat: jit(42.0209, 0.0005), lon: jit(-93.7739, 0.0005) });
+    else if (kind === "exif" && /calibration/i.test(f.name)) S.meta.set(f.path, { kind, captured: "2025-07-14T10:12:40", make: "DJI", model: "FC8482", width: 5280, height: 3956, lat: 42.0201, lon: -93.7751, alt_rel_m: 1.2 });
+    else if (kind === "exif") S.meta.set(f.path, { kind, width: 24000, height: 18000 });
+    else if (kind === "las") S.meta.set(f.path, { kind, version: /\.laz$/.test(f.ext) ? "1.4" : "1.2", points: /merged/i.test(f.name) ? 412_000_000 : 128_000_000, point_format: 6, crs: "WGS 84 / UTM zone 15N", epsg: "32615", created: d || "2025-07-14", system: "DJI Zenmuse L2", software: "DJI Terra 4.2", min_x: 435120.2, max_x: 435480.9, min_y: 4651880.4, max_y: 4652210.7, min_z: 318.2, max_z: 341.6 });
+    else if (kind === "envi"){ const p = +(f.name.match(/P0(\d+)/) || [, 201])[1]; S.meta.set(f.path, { kind, samples: 1024, lines: 1024, bands: 299, interleave: "bil", data_type: "12", wl_count: 299, wl_min: 450.0, wl_max: 1700.0, wl_units: "Nanometers", sensor: "Hinalea 4300", acquired: p <= 206 ? "2025-09-10" : "2025-09-11" }); }
+    else if (kind === "ply") S.meta.set(f.path, { kind, format: "binary_little_endian", vertices: 1_240_000, faces: 0, properties: 62, gaussian_splat: true, sh_degree: 3, has_color: true, has_normals: true });
+    else if (kind === "json") S.meta.set(f.path, { kind, frames: 184, camera_model: "OPENCV", width: 5280, height: 3956, fl_x: 3712.4 });
+    else if (kind === "vcf") S.meta.set(f.path, { kind, fileformat: "VCFv4.2", samples: 480, contigs: 10, reference: "Zm-B73-REFERENCE-NAM-5.0", source: "TASSEL", header_complete: true });
+    else if (kind === "table") S.meta.set(f.path, { kind, columns: /weather/.test(f.name) ? 8 : 6, rows: /weather/.test(f.name) ? 2208 : 480, rows_exact: true, delimiter: ",", header: /weather/.test(f.name) ? "timestamp | air_temp_c | rh_pct | precip_mm | solar_wm2 | wind_ms | soil_temp_c | vpd_kpa" : "plot_id | genotype | block | height_cm_0714 | height_cm_0802 | notes" });
+    else if (kind === "office") S.meta.set(f.path, { kind, creator: "Field crew", created: /plot map/.test(f.name) ? "2025-05-02T14:10:00" : "2025-07-14T18:30:00", sheets: /xlsx/.test(f.ext) ? "layout | genotypes | notes" : "" });
+    else if (kind === "mrk") S.meta.set(f.path, { kind, triggers: 120 });
+  }
+  indexStemMeta();
+}
+function renderMeta(){
+  const recs = [...S.meta.values()]; const byKind = new Map();
+  for (const r of recs){ if (!byKind.has(r.kind)) byKind.set(r.kind, []); byKind.get(r.kind).push(r); }
+  const canRead = S.files.some(f => f.file && metaKind(f.ext, f.name));
+  $("#scanMeta").disabled = !canRead; $("#scanMeta").textContent = S.meta.size && !S.metaIsExample ? "Read again" : "Read embedded metadata";
+  if (S.metaIsExample && !$("#metaMsg").dataset.busy) $("#metaMsg").textContent = "Example values for the demo folder (made up). Load your own folder, then press Read.";
+  else if (!S.meta.size) $("#metaMsg").textContent = canRead ? "Reads only the first few KB of each file, on this computer. Large LiDAR and hyperspectral files take seconds, not minutes." : "Load a folder first.";
+  $("#metaTable").innerHTML = byKind.size ? [...byKind].map(([k, rs]) => `<tr><td>${esc(KIND_LABEL[k] || k)}</td><td class="num">${fmtN(rs.filter(r => !r.error).length)}${rs.some(r => r.error) ? `<div class="status">${rs.filter(r => r.error).length} unreadable</div>` : ""}</td><td>${esc(summarizeRecs(rs))}</td></tr>`).join("") : `<tr><td colspan="3" class="status">Nothing read yet.</td></tr>`;
+  const e = embeddedFacts();
+  $("#metaFacts").innerHTML = S.meta.size ? [["Capture dates", e.start ? (e.start === e.end ? e.start : `${e.start} → ${e.end}`) : "—"], ["GPS center", e.lat != null ? `${e.lat.toFixed(5)}, ${e.lon.toFixed(5)}` : "—"], ["Geotagged images", fmtN(e.nGps)], ["Sensors seen", e.sensors.join(", ") || "—"]].map(([k, v]) => `<div class="stat"><div class="k">${k}</div><div class="v" style="font-size:14px">${esc(v)}</div></div>`).join("") : "";
+}
+
+// ---------------- boot ----------------
+loadLocal();
+if (!S.answers.institution) S.answers.institution = "";
+ingest(sampleFolder(), true);
+go(1);
+renderCuratorStatus();
+(async () => {
+  try { sampleFn = await window.claude?.use?.("sample") || null; } catch { sampleFn = null; }
+  renderCuratorStatus();
+})();
+(async () => {
+  try { downloadsNs = await window.claude?.use?.("downloads") || null; } catch { downloadsNs = null; }
+  if (S.step === 4) renderExport();
+})();
+
+</script>
+
+</body></html>
