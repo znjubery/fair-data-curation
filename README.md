@@ -2,7 +2,7 @@
 
 Materials for making our lab's phenotyping data **F**indable, **A**ccessible, **I**nteroperable and **R**eusable, so it meets USDA/NSF data-sharing rules and survives the person who collected it.
 
-Maintainer: Zaki Jubery, Agricultural & Biosystems Engineering and Translational AI Center, Iowa State University.
+Maintainer: Baskar Lab, Iowa State University.
 
 ## What's here
 
