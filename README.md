@@ -8,9 +8,7 @@ Maintainer: Baskar Lab, Iowa State University.
 
 | Folder | Contents |
 |---|---|
-| `talk/` | 20–25 min group-meeting talk, 14 slides, ISU/TrAC template. `FAIR_Data_Curation_Talk.pptx` (editable, with speaker notes) and a PDF render of it. |
-| `talk/beamer/` | The same deck in LaTeX Beamer: `talk.tex`, theme `beamerthemeISU.sty`, compiled `talk.pdf`, and `talk-notes.pdf` (one page of speaker notes per slide). Fonts are bundled in `fonts/`. |
-| `talk/build/` | Python scripts that generate both decks from one spec (`deck_spec.py`), plus the scripts that draw the excerpt images and the score chart. |
+| `talk/FAIR_Data_Curation_Talk.pdf` | 20–25 min group-meeting talk, 14 slides, ISU/TrAC template. |
 | `figures/` | Every image used in the talk: highlighted source excerpts, the FAIR score chart, and screenshots of the Folder Curator app. |
 | `app/fair-folder-curator.html` | **FAIR Folder Curator**: load a messy folder, answer a short interview, review a numbered FAIR layout, and export `organize.py` plus README, MIAPPE, Croissant and FAIR-report files. |
 | `lesson/fair-data-for-phenotyping.html` | The 10-section FAIR lesson (10th-grade level) with the scoring math and the UAV-LiDAR worked example. |
@@ -44,16 +42,6 @@ project-name/
   05_code/         scripts, git commit
   99_review/       possible duplicates
 ```
-
-## Rebuilding the talk
-
-```bash
-cd talk/build
-python build_pptx.py ../FAIR_Data_Curation_Talk.pptx       # needs python-pptx, Pillow
-python build_beamer.py /tmp/beamer-out                     # then: cd /tmp/beamer-out && latexmk -xelatex talk.tex
-```
-
-Install Merriweather and Open Sans (in `talk/beamer/fonts/`) on any computer that will show the PPTX, or PowerPoint will substitute other fonts.
 
 ## Sources quoted in the talk
 
