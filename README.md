@@ -13,6 +13,7 @@ Maintainer: Baskar Lab, Iowa State University.
 | `app/fair-folder-curator.html` | **FAIR Folder Curator**: load a messy folder, answer a short interview, review a numbered FAIR layout, and export `organize.py` plus README, MIAPPE, Croissant and FAIR-report files. |
 | `cli/fair_curate.py` | **Command-line version** for Nova, Jetstream2, Globus endpoints or any folder a browser can't open. Same rules and layout; `scan`, `apply`, `runs`, `undo`. One file, Python 3.8+, no installs. |
 | `TESTING.md` | **v0.2 test tasks for the group**, one section per person. |
+| `CONTRIBUTING.md` | How to report problems, request missing features, and push fixes (branch + pull request). |
 | `CHANGELOG.md` | What changed in each version. |
 | `lesson/fair-data-for-phenotyping.html` | The 10-section FAIR lesson with the scoring math and the UAV-LiDAR worked example. |
 

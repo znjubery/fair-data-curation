@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+Add your change here in your pull request.
+
 ## v0.2 (2026-10-26): feedback from the Oct 26 group meeting
 
 | Suggestion from the meeting | What changed |

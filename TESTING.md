@@ -3,7 +3,11 @@
 Goal: by **Monday, Nov 9, 2026** every member has organized one real dataset with the tool and reported problems.
 Work on a **copy or small subset** of your data, never the only copy.
 
-Report problems as a **GitHub issue** on this repo: what you ran, what you expected, what happened, and the screenshot or terminal output. One issue per problem.
+Three things are expected from everyone (details in [CONTRIBUTING.md](CONTRIBUTING.md)):
+
+1. **Feedback**: report each problem as its own GitHub issue (what you ran, what you expected, what happened, screenshot or terminal output).
+2. **What's missing**: open an `enhancement` issue for anything the tool should do for your data but doesn't.
+3. **Push**: fix at least one thing you found (a bug, a file-type rule, a doc gap) on a branch and open a pull request.
 
 ## Everyone
 
@@ -11,7 +15,7 @@ Report problems as a **GitHub issue** on this repo: what you ran, what you expec
 2. Open `app/fair-folder-curator.html` in Chrome or Edge, load a small subset of your data (50–500 files), answer the interview, check **At a glance** in step 3, and export the kit.
 3. Run the preview, then `--apply`, then `--runs`, then `--undo`, then `--apply` again (commands are in `HOW_TO_RUN.txt` in the kit).
 4. Fill the blanks in the generated `README.md` and note your FAIR score (step 4) before and after.
-5. Reply to the issue **"v0.2 check-in"** with: dataset name, number of files, FAIR % before → after, and the time it took.
+5. Reply to the issue **"v0.2 check-in"** with: dataset name, number of files, FAIR % before → after, the time it took, and links to the issues and pull request you opened.
 
 ## Harish: genotype data and session reload
 
