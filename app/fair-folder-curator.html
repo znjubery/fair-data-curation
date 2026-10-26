@@ -124,12 +124,19 @@ pre.preview{margin:0;max-height:420px;overflow:auto;background:var(--sunk);paddi
 .cmd{display:flex;gap:8px;align-items:center;background:var(--sunk);border-radius:6px;padding:8px 10px;font:12.5px "IBM Plex Mono",monospace;overflow-x:auto}
 .cmd code{white-space:nowrap;flex:1}
 [hidden]{display:none!important}
+.viz{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:16px}
+@media (max-width:760px){.viz{grid-template-columns:1fr}}
+.viz svg{width:100%;height:auto;display:block}
+.viz .ax{fill:var(--muted);font:11px "IBM Plex Mono",monospace}
+.viz .lab{fill:var(--ink);font:12px "IBM Plex Mono",monospace}
+.viz .grid{stroke:var(--rule);stroke-width:1}
+.ver{font:500 11px "IBM Plex Mono",monospace;color:var(--muted);border:1px solid var(--rule);border-radius:10px;padding:1px 7px;margin-left:8px;vertical-align:4px}
 @media (prefers-reduced-motion:no-preference){.step{animation:fade .18s ease-out}@keyframes fade{from{opacity:.4}to{opacity:1}}}
 </style>
 <div class="app">
 <header class="top">
   <div class="brand">
-    <h1>FAIR Folder Curator</h1>
+    <h1>FAIR Folder Curator<span class="ver">v0.2</span></h1>
     <p>Turn a messy data folder into a clean, documented dataset. A data-curator agent asks what it needs, proposes a layout, and hands you a script that copies your files into it.</p>
   </div>
   <nav class="steps" aria-label="Steps">
@@ -153,7 +160,9 @@ pre.preview{margin:0;max-height:420px;overflow:auto;background:var(--sunk);paddi
       <input type="file" id="pick" webkitdirectory directory multiple hidden>
       <div class="banner" id="sampleBanner" hidden><b>Example folder loaded.</b> This is a made-up messy maize drone folder so you can see how the app works. Load your own folder above to replace it.</div>
       <div class="panel stack" id="scanPanel">
-        <div class="row spread"><strong id="rootName">Folder</strong><button class="link" id="loadSample">Load example folder</button></div>
+        <div class="row spread"><strong id="rootName">Folder</strong><span class="row"><button class="link" id="loadSessionBtn">Load previous session (.json)</button><button class="link" id="loadSample">Load example folder</button></span></div>
+        <input type="file" id="sessionPick" accept=".json,application/json" hidden>
+        <div class="banner" id="restoreBanner" hidden></div>
         <div class="stats" id="stats"></div>
         <div class="extbar" id="extbar"></div>
         <div class="legend" id="extlegend"></div>
@@ -215,6 +224,10 @@ pre.preview{margin:0;max-height:420px;overflow:auto;background:var(--sunk);paddi
         </div>
       </div>
       <div class="tw"><table class="plan"><thead><tr><th>Group (examples)</th><th class="num">Files</th><th>Category</th><th>Data type</th><th>Target folder</th><th>Names</th><th>Date from</th><th>Include</th></tr></thead><tbody id="planTable"></tbody></table></div>
+      <div class="panel stack">
+        <div class="row spread"><strong>At a glance</strong><span class="status">Size of each top folder, and what was collected on each field day</span></div>
+        <div class="viz"><div id="vizSize"></div><div id="vizTime"></div></div>
+      </div>
       <div class="panel stack">
         <div class="row spread"><strong>Session calendar</strong><span class="status">Each field day gets one number, shared by every sensor</span></div>
         <div class="tw"><table><thead><tr><th>Session</th><th>Date</th><th>Data collected</th></tr></thead><tbody id="sessions"></tbody></table></div>
@@ -294,7 +307,19 @@ const S = {
 };
 let sampleFn = null, downloadsNs = null, curatorCtl = null, planCtl = null;
 
-const LS_KEY = "ffc.v1";
+const LS_KEY = "ffc.v1", LS_GROUPS = "ffc.groups.v1";
+const GROUP_FIELDS = ["cat", "dtype", "folder", "rename", "dateSrc", "exclude"];
+S.groupMemory = new Map(); S.restoredFrom = "";
+function loadGroupMemory(root){ try { const all = JSON.parse(localStorage.getItem(LS_GROUPS) || "{}"); return all[root] || null; } catch { return null; } }
+function rememberGroups(){
+  if (S.isSample) return;
+  try {
+    const all = JSON.parse(localStorage.getItem(LS_GROUPS) || "{}");
+    all[S.rootName] = { saved: new Date().toISOString(), groups: Object.fromEntries(S.clusters.map(c => [c.key, Object.fromEntries(GROUP_FIELDS.map(k => [k, c[k]]))])) };
+    const keys = Object.keys(all); if (keys.length > 20) delete all[keys[0]];
+    localStorage.setItem(LS_GROUPS, JSON.stringify(all));
+  } catch {}
+}
 function saveLocal(){ try { localStorage.setItem(LS_KEY, JSON.stringify({answers:S.answers, settings:S.settings, outputs:S.outputs})); } catch {} }
 function loadLocal(){ try { const d = JSON.parse(localStorage.getItem(LS_KEY) || "null"); if (d){ Object.assign(S.answers, d.answers||{}); Object.assign(S.settings, d.settings||{}); Object.assign(S.outputs, d.outputs||{}); } } catch {} }
 
@@ -352,6 +377,12 @@ function buildClusters(){
     return c;
   }).sort((a,b) => a.dir.localeCompare(b.dir) || a.pattern.localeCompare(b.pattern));
   S.clusters.forEach((c, n) => c.id = "g" + (n+1));
+  let reused = 0;
+  for (const c of S.clusters){
+    const m = S.groupMemory.get(c.key) || S.groupMemory.get(c.dir + "|" + c.pattern);
+    if (m){ for (const k of GROUP_FIELDS) if (m[k] !== undefined) c[k] = m[k]; reused++; }
+  }
+  S.reusedGroups = reused;
 }
 
 // ---------------- rules classifier ----------------
@@ -549,9 +580,16 @@ function ingest(list, isSample){
   S.isSample = isSample;
   S.files = list.map(analyzeFile);
   S.clusters = [];
+  if (!S.pendingSession){
+    S.groupMemory = new Map(); S.restoredFrom = "";
+    const mem = !isSample && loadGroupMemory(S.rootName);
+    if (mem){ for (const [k, v] of Object.entries(mem.groups || {})) S.groupMemory.set(k, v); S.restoredFrom = "your last session on this folder (" + String(mem.saved).slice(0, 10) + ")"; }
+  }
   if (isSample) sampleMeta(); else { S.meta = new Map(); S.metaIsExample = false; indexStemMeta(); }
   markDuplicates(); buildClusters(); buildPlan();
-  S.planSource = "rules"; S.planSummary = ""; S.followups = []; S.observations = [];
+  S.planSource = S.reusedGroups ? "restored" : "rules"; S.planSummary = "";
+  if (!S.pendingSession){ S.followups = []; S.observations = []; }
+  S.pendingSession = false;
   renderAll();
 }
 async function readEntries(entry, prefix, out){
@@ -675,7 +713,7 @@ ${folderDigest(150)}`;
     }
     if (r?.dtype_descriptions && typeof r.dtype_descriptions === "object") for (const [k, v] of Object.entries(r.dtype_descriptions)) S.dtypeDesc[seg(k)] = String(v).slice(0, 300);
     S.planSummary = String(r?.summary || "");
-    S.planSource = "curator";
+    S.planSource = "curator"; rememberGroups();
     msg.textContent = `Curator planned ${n} of ${S.clusters.length} groups. Review the table; your edits win.`;
     buildPlan(); renderPlan();
   } catch (e){
@@ -885,6 +923,7 @@ function extras(){
   if (S.outputs.croissant) x[metaDir() + "/croissant.json"] = genCroissant();
   if (S.outputs.fair) x[metaDir() + "/FAIR_report.md"] = genFair();
   if (S.outputs.embedded && S.meta.size) Object.assign(x, embeddedTables());
+  x[metaDir() + "/curator_session.json"] = genSession();
   return x;
 }
 function genScript(){
@@ -899,21 +938,24 @@ Original folder name: ${S.rootName.replace(/[\r\n"\\]/g, " ")}
 Plan: ${plan.filter(r => r.action === "copy").length} files to organize, ${plan.filter(r => r.action !== "copy").length} skipped (junk or excluded)
 
 Copies (or moves) files from your messy folder into a clean, FAIR-style layout.
-The default is a DRY RUN: nothing changes until you add --apply.
+The default is a DRY RUN: nothing changes until you add --apply. Every run is logged
+(${metaDir()}/runs.json + runs/<id>_manifest.csv), so any run can be undone.
 
   python organize.py SOURCE_FOLDER NEW_FOLDER                  # preview only
   python organize.py SOURCE_FOLDER NEW_FOLDER --apply          # copy (originals untouched)
   python organize.py SOURCE_FOLDER NEW_FOLDER --apply --move   # move instead of copy
-  python organize.py --undo NEW_FOLDER/${metaDir()}/manifest.csv   # remove the copies again
-  python organize.py --undo NEW_FOLDER/${metaDir()}/manifest.csv --source SOURCE_FOLDER   # undo a move
+  python organize.py SOURCE_FOLDER --inplace --apply           # rename inside the same folder, no copies
+  python organize.py --runs NEW_FOLDER                         # run history
+  python organize.py --undo NEW_FOLDER                         # reverse the latest run (works for copy, move and in-place)
 
 Options:
   --checksum   record SHA-256 of every file and verify each copy (slower, recommended for final archives)
   --yes        skip the confirmation questions
+Windows: long paths (>240 characters) and reserved names (CON, AUX, NUL, COM1...) are handled.
 Needs only Python 3.8+ and its standard library.
 """
 `;
-  const body = String.raw`import argparse, base64, csv, hashlib, json, os, shutil, sys
+  const body = String.raw`import argparse, base64, csv, datetime, hashlib, json, os, re, shutil, sys
 
 PLAN_B64 = (
 __PLAN__
@@ -924,9 +966,28 @@ __EXTRA__
 DEFAULT_CHECKSUM = __CHK__
 META_DIR = "__META__"
 
+# >>> ENGINE (shared with the organize.py that the HTML app exports; keep in sync via tools/sync_engine.py)
+RESERVED = {"CON", "PRN", "AUX", "NUL", *("COM%d" % i for i in range(1, 10)), *("LPT%d" % i for i in range(1, 10))}
 
-def native(rel):
-    return os.path.join(*rel.split("/"))
+
+def safe_rel(rel):
+    """Make a planned relative path safe on Windows, macOS and Linux."""
+    out = []
+    for part in rel.split("/"):
+        part = re.sub(r'[<>:"\\|?*\x00-\x1f]', "_", part).rstrip(" .") or "_"
+        stem = part.split(".")[0].upper()
+        if stem in RESERVED:
+            part = "_" + part
+        out.append(part)
+    return "/".join(out)
+
+
+def native(root, rel):
+    """Absolute OS path for a plan path; long-path safe on Windows."""
+    p = os.path.abspath(os.path.join(root, *rel.split("/")))
+    if os.name == "nt" and len(p) >= 240 and not p.startswith("\\\\?\\"):
+        p = "\\\\?\\" + p
+    return p
 
 
 def sha256(path, buf=1 << 20):
@@ -942,9 +1003,9 @@ def unique_target(path):
         return path
     base, ext = os.path.splitext(path)
     i = 2
-    while os.path.exists(f"{base}_{i}{ext}"):
+    while os.path.exists("%s_%d%s" % (base, i, ext)):
         i += 1
-    return f"{base}_{i}{ext}"
+    return "%s_%d%s" % (base, i, ext)
 
 
 def confirm(msg, yes):
@@ -956,40 +1017,73 @@ def confirm(msg, yes):
         return False
 
 
-def run(src, dst, apply, move, checksum, yes):
-    plan = json.loads(base64.b64decode(PLAN_B64).decode("utf-8"))
-    extra = json.loads(base64.b64decode(EXTRA_B64).decode("utf-8"))
+def _runs_file(dst, meta_dir):
+    return os.path.join(dst, meta_dir, "runs.json")
+
+
+def load_runs(dst, meta_dir):
+    try:
+        with open(_runs_file(dst, meta_dir), encoding="utf-8") as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return []
+
+
+def save_runs(dst, meta_dir, runs):
+    os.makedirs(os.path.join(dst, meta_dir), exist_ok=True)
+    with open(_runs_file(dst, meta_dir), "w", encoding="utf-8") as fh:
+        json.dump(runs, fh, indent=2)
+
+
+def find_meta_dir(dst):
+    for m in ("01_metadata", "metadata"):
+        if os.path.isfile(os.path.join(dst, m, "runs.json")):
+            return m
+    return None
+
+
+def run_plan(plan, extra, src, dst, mode, checksum, yes, apply, meta_dir, undo_cmd="python organize.py --undo"):
+    """mode: copy | move | inplace. Returns the run record (or None for a dry run)."""
     src = os.path.abspath(src)
-    dst = os.path.abspath(dst)
+    dst = os.path.abspath(src if mode == "inplace" else dst)
     if not os.path.isdir(src):
-        sys.exit(f"Source folder not found: {src}")
-    if dst == src or dst.startswith(src + os.sep):
-        sys.exit("NEW_FOLDER must be outside SOURCE_FOLDER.")
+        sys.exit("Source folder not found: " + src)
+    if mode != "inplace" and (dst == src or dst.startswith(src + os.sep)):
+        sys.exit("CLEAN_FOLDER must be outside MESSY_FOLDER. To reorganize inside the same folder use --inplace.")
     todo = [r for r in plan if r["action"] == "copy"]
     skipped = [r for r in plan if r["action"] != "copy"]
-    missing = [r for r in todo if not os.path.isfile(os.path.join(src, native(r["old"])))]
+    for r in todo:
+        r["new"] = safe_rel(r["new"])
+    missing = [r for r in todo if not os.path.isfile(native(src, r["old"]))]
     total = sum(r["size"] for r in todo)
-    verb = "move" if move else "copy"
-    print(f"Plan: {len(todo)} files to {verb} ({total / 1e9:.2f} GB), {len(skipped)} skipped, {len(missing)} missing in source.")
-    for r in todo[:15]:
-        print(f"  {r['old']}  ->  {r['new']}")
-    if len(todo) > 15:
-        print(f"  ... and {len(todo) - 15} more")
+    verb = {"copy": "copy", "move": "move", "inplace": "rename in place"}[mode]
+    print("Plan: %d files to %s (%.2f GB), %d skipped, %d missing in source." % (len(todo), verb, total / 1e9, len(skipped), len(missing)))
+    for r in todo[:12]:
+        print("  %s  ->  %s" % (r["old"], r["new"]))
+    if len(todo) > 12:
+        print("  ... and %d more" % (len(todo) - 12))
     if extra:
         print("Metadata files to write: " + ", ".join(sorted(extra)))
     if missing:
-        print(f"{len(missing)} planned files were not found (renamed or deleted since the plan was made), e.g.:")
+        print("%d planned files were not found (renamed or deleted since the plan was made), e.g.:" % len(missing))
         for r in missing[:10]:
             print("  " + r["old"])
     if not apply:
         print("\nDry run only. Nothing was changed. Add --apply to do it.")
-        return
-    if move and not confirm(f"This will MOVE {len(todo)} files out of {src}.", yes):
+        return None
+    if mode != "copy" and not confirm("This will %s %d files inside %s." % (verb.upper(), len(todo), src), yes):
         sys.exit("Stopped. Nothing was changed.")
-    if os.path.isdir(dst) and os.listdir(dst) and not confirm(f"{dst} is not empty. New files will be added next to what is there.", yes):
+    if mode != "inplace" and os.path.isdir(dst) and os.listdir(dst) and not confirm(dst + " is not empty. New files will be added next to what is there.", yes):
         sys.exit("Stopped. Nothing was changed.")
-    os.makedirs(os.path.join(dst, META_DIR), exist_ok=True)
-    manifest_path = unique_target(os.path.join(dst, META_DIR, "manifest.csv"))
+    run_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    taken = {r["id"] for r in load_runs(dst, meta_dir)}
+    base_id, k = run_id, 2
+    while run_id in taken:
+        run_id = "%s-%d" % (base_id, k)
+        k += 1
+    runs_dir = os.path.join(dst, meta_dir, "runs")
+    os.makedirs(runs_dir, exist_ok=True)
+    manifest_path = unique_target(os.path.join(runs_dir, run_id + "_manifest.csv"))
     ok = bad = 0
     with open(manifest_path, "w", newline="", encoding="utf-8") as mf:
         w = csv.writer(mf)
@@ -997,63 +1091,114 @@ def run(src, dst, apply, move, checksum, yes):
         for r in skipped:
             w.writerow([r["old"], "", r["size"], "", r["action"], "not copied"])
         for i, r in enumerate(todo, 1):
-            s = os.path.join(src, native(r["old"]))
+            s = native(src, r["old"])
             if not os.path.isfile(s):
-                w.writerow([r["old"], r["new"], r["size"], "", verb, "missing"])
+                w.writerow([r["old"], r["new"], r["size"], "", mode, "missing"])
                 bad += 1
                 continue
-            t = unique_target(os.path.join(dst, native(r["new"])))
-            new_rel = os.path.relpath(t, dst).replace(os.sep, "/")
+            t = native(dst, r["new"])
+            if os.path.normcase(os.path.abspath(s)) == os.path.normcase(os.path.abspath(t)):
+                w.writerow([r["old"], r["new"], r["size"], "", mode, "unchanged"])
+                ok += 1
+                continue
+            if os.path.isfile(t) and os.path.getsize(t) == os.path.getsize(s) and (not checksum or sha256(t) == sha256(s)):
+                w.writerow([r["old"], r["new"], r["size"], "", mode, "already there"])
+                ok += 1
+                continue
+            t = unique_target(t)
+            new_rel = os.path.relpath(t.replace("\\\\?\\", ""), dst).replace(os.sep, "/")
             try:
                 os.makedirs(os.path.dirname(t), exist_ok=True)
                 size0 = os.path.getsize(s)
                 digest = sha256(s) if checksum else ""
-                if move:
-                    shutil.move(s, t)
-                else:
+                if mode == "copy":
                     shutil.copy2(s, t)
+                else:
+                    shutil.move(s, t)
                 status = "ok"
                 if os.path.getsize(t) != size0:
                     status = "SIZE MISMATCH"
                 elif checksum and sha256(t) != digest:
                     status = "CHECKSUM MISMATCH"
-                w.writerow([r["old"], new_rel, size0, digest, verb, status])
-                if status == "ok":
-                    ok += 1
-                else:
-                    bad += 1
+                w.writerow([r["old"], new_rel, size0, digest, mode, status])
+                ok += status == "ok"
+                bad += status != "ok"
             except OSError as e:
-                w.writerow([r["old"], r["new"], r["size"], "", verb, f"error: {e}"])
+                w.writerow([r["old"], r["new"], r["size"], "", mode, "error: %s" % e])
                 bad += 1
             if i % 200 == 0:
-                print(f"  {i}/{len(todo)} done")
+                print("  %d/%d done" % (i, len(todo)))
+    if mode == "inplace":  # tidy the old, now-empty folders (never the metadata folder)
+        for root, dirs, files in os.walk(src, topdown=False):
+            rel = os.path.relpath(root, src).replace(os.sep, "/")
+            if root != src and not os.listdir(root) and not rel.startswith(meta_dir):
+                os.rmdir(root)
+    written = []
     for rel, text in extra.items():
-        p = unique_target(os.path.join(dst, native(rel)))
+        p = native(dst, rel)
+        if os.path.exists(p):  # keep the user's edited README/metadata; write the new one beside it
+            p = unique_target(p)
         os.makedirs(os.path.dirname(p), exist_ok=True)
         with open(p, "w", encoding="utf-8", newline="\n") as fh:
             fh.write(text)
-    print(f"\nDone: {ok} files {'moved' if move else 'copied'}, {bad} problems.")
-    print(f"Manifest: {manifest_path}")
+        written.append(os.path.relpath(p, dst).replace(os.sep, "/"))
+    with open(os.path.join(dst, meta_dir, "manifest.csv"), "w", newline="", encoding="utf-8") as fh:
+        fh.write(open(manifest_path, encoding="utf-8").read())
+    runs = load_runs(dst, meta_dir)
+    rec = {"id": run_id, "time": datetime.datetime.now().isoformat(timespec="seconds"), "mode": mode, "source": src,
+           "dest": dst, "ok": ok, "problems": bad, "manifest": os.path.relpath(manifest_path, dst).replace(os.sep, "/"),
+           "metadata_written": written, "undone": False}
+    runs.append(rec)
+    save_runs(dst, meta_dir, runs)
+    print("\nDone: %d files %s, %d problems." % (ok, {"copy": "copied", "move": "moved", "inplace": "renamed"}[mode], bad))
+    print("Run %s logged in %s/runs.json; manifest %s" % (run_id, meta_dir, rec["manifest"]))
     if bad:
         print("Check rows in the manifest whose status is not 'ok'.")
-    print(f"Undo:     python {os.path.basename(sys.argv[0])} --undo \"{manifest_path}\"" + (f" --source \"{src}\"" if move else ""))
+    print('Undo:   %s "%s"' % (undo_cmd, dst))
+    return rec
 
 
-def undo(manifest, source, yes):
-    manifest = os.path.abspath(manifest)
-    dst = os.path.dirname(os.path.dirname(manifest))
+def list_runs(dst):
+    dst = os.path.abspath(dst)
+    meta = find_meta_dir(dst)
+    if not meta:
+        sys.exit("No run history found in " + dst)
+    for r in load_runs(dst, meta):
+        print("%s  %-8s %5d ok %3d problems  %s%s" % (r["id"], r["mode"], r["ok"], r["problems"], r["source"], "   [undone]" if r.get("undone") else ""))
+
+
+def undo_run(target, yes, run_id=None):
+    """target: the organized folder (latest run is undone) or a manifest.csv path (older kits)."""
+    target = os.path.abspath(target)
+    if os.path.isfile(target):  # legacy: manifest path; we need dst = folder above metadata
+        dst = os.path.dirname(os.path.dirname(target))
+        if os.path.basename(os.path.dirname(target)) == "runs":
+            dst = os.path.dirname(dst)
+    else:
+        dst = target
+    meta = find_meta_dir(dst)
+    runs = load_runs(dst, meta) if meta else []
+    live = [r for r in runs if not r.get("undone") and (run_id is None or r["id"] == run_id)]
+    if live:
+        rec = live[-1]
+        manifest = os.path.join(dst, *rec["manifest"].split("/"))
+        source = rec["source"]
+    elif os.path.isfile(target):
+        rec, manifest, source = None, target, None
+    else:
+        sys.exit("Nothing to undo in " + dst)
     with open(manifest, encoding="utf-8") as fh:
         rows = list(csv.DictReader(fh))
-    moved = [r for r in rows if r["action"] == "move" and r["status"] == "ok"]
+    moved = [r for r in rows if r["action"] in ("move", "inplace") and r["status"] == "ok"]
     copied = [r for r in rows if r["action"] == "copy" and r["status"] == "ok"]
     if moved and not source:
-        sys.exit("This run moved files. Tell me where they came from: --undo MANIFEST --source ORIGINAL_FOLDER")
-    print(f"Undo: {len(moved)} files move back, {len(copied)} copies deleted. Originals of copies are not touched.")
+        sys.exit("This run moved files but no run history was found, so the original folder is unknown.")
+    print("Undo run %s: %d files go back to their old names, %d copies deleted. Originals of copies are not touched." % (rec["id"] if rec else "(manifest)", len(moved), len(copied)))
     if not confirm("Proceed?", yes):
         sys.exit("Stopped. Nothing was changed.")
     for r in moved:
-        t = os.path.join(dst, native(r["new_path"]))
-        o = os.path.join(os.path.abspath(source), native(r["original_path"]))
+        t = native(dst, r["new_path"])
+        o = native(source, r["original_path"])
         if not os.path.isfile(t):
             continue
         if os.path.exists(o):
@@ -1062,30 +1207,44 @@ def undo(manifest, source, yes):
         os.makedirs(os.path.dirname(o), exist_ok=True)
         shutil.move(t, o)
     for r in copied:
-        t = os.path.join(dst, native(r["new_path"]))
+        t = native(dst, r["new_path"])
         if os.path.isfile(t) and os.path.getsize(t) == int(r["size_bytes"]):
             os.remove(t)
+    keep = os.path.join(dst, meta or "metadata")
     for root, dirs, files in os.walk(dst, topdown=False):
-        if root != dst and not os.listdir(root):
+        if root != dst and not root.startswith(keep) and not os.listdir(root):
             os.rmdir(root)
-    print(f"Undo finished. Metadata files and the manifest were left in {dst}.")
+    if rec:
+        rec["undone"] = True
+        rec["undone_time"] = datetime.datetime.now().isoformat(timespec="seconds")
+        save_runs(dst, meta, runs)
+    print("Undo finished. Run history and metadata files were kept in %s." % keep)
+# <<< ENGINE
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Organize a messy folder using a FAIR Folder Curator plan.")
+    ap = argparse.ArgumentParser(description="Organize a messy folder using a FAIR Folder Curator plan (v0.2).")
     ap.add_argument("source", nargs="?", help="the messy folder")
-    ap.add_argument("dest", nargs="?", help="where the organized folder goes (outside the source)")
-    ap.add_argument("--apply", action="store_true", help="actually copy/move files (default is a dry run)")
+    ap.add_argument("dest", nargs="?", help="where the organized folder goes (outside the source); omit with --inplace")
+    ap.add_argument("--apply", action="store_true", help="actually change files (default is a dry run)")
     ap.add_argument("--move", action="store_true", help="move instead of copy")
+    ap.add_argument("--inplace", action="store_true", help="reorganize inside the messy folder itself (rename/move, no copies)")
     ap.add_argument("--checksum", action="store_true", default=DEFAULT_CHECKSUM, help="verify every file with SHA-256")
-    ap.add_argument("--undo", metavar="MANIFEST", help="reverse a previous run using its manifest.csv")
-    ap.add_argument("--source", dest="undo_source", help="with --undo after --move: the original folder")
+    ap.add_argument("--undo", metavar="FOLDER", help="reverse the latest run in this organized folder (an old manifest.csv path also works)")
+    ap.add_argument("--id", help="with --undo: the run id to reverse (see --runs)")
+    ap.add_argument("--runs", metavar="FOLDER", help="list the run history of an organized folder")
     ap.add_argument("--yes", action="store_true", help="do not ask for confirmation")
     a = ap.parse_args()
-    if a.undo:
-        undo(a.undo, a.undo_source, a.yes)
-    elif a.source and a.dest:
-        run(a.source, a.dest, a.apply, a.move, a.checksum, a.yes)
+    if a.runs:
+        list_runs(a.runs)
+    elif a.undo:
+        undo_run(a.undo, a.yes, a.id)
+    elif a.source and (a.dest or a.inplace):
+        plan = json.loads(base64.b64decode(PLAN_B64).decode("utf-8"))
+        extra = json.loads(base64.b64decode(EXTRA_B64).decode("utf-8"))
+        mode = "inplace" if a.inplace else ("move" if a.move else "copy")
+        run_plan(plan, extra, a.source, a.dest or a.source, mode, a.checksum, a.yes, a.apply, META_DIR,
+                 undo_cmd="python %s --undo" % os.path.basename(sys.argv[0]))
     else:
         ap.print_help()
 
@@ -1114,7 +1273,14 @@ function genHowTo(){
 4. Open ${d}/README.md and fill any blanks. Check _review/duplicates/ and other/unsorted/ if present.
 
 5. Changed your mind?
-     python organize.py --undo "${d}/${metaDir()}/manifest.csv"
+     python organize.py --undo "${d}"
+   (python organize.py --runs "${d}" lists every run; add --id RUN_ID to undo an older one)
+
+6. No room for a copy? Reorganize inside the folder instead (still undoable):
+     python organize.py "${S.rootName}" --inplace --apply
+
+7. Next time: load ${metaDir()}/curator_session.json (step 1, "Load previous session") to start from these answers,
+   or use it on Nova/Globus with the command-line tool: python fair_curate.py apply MESSY CLEAN --plan curator_session.json --run
 
 On Windows use "py" instead of "python". On an HPC cluster (Nova), run it on a data-transfer or interactive node.
 If files were renamed after you made the plan, the dry run lists them as missing. Re-scan the folder in the app and export again.
@@ -1202,6 +1368,7 @@ function renderPlanTable(){
     <td style="text-align:center"><input type="checkbox" data-f="include" ${c.exclude ? "" : "checked"} aria-label="Include group ${c.id}"></td></tr>`).join("");
 }
 function renderPlanOutputs(){
+  renderViz();
   const copies = S.rows.filter(r => r.action === "copy");
   const dups = copies.filter(r => r.dup).length, undated = copies.filter(r => r.new.includes("/undated/")).length, unsorted = copies.filter(r => r.new.startsWith("other/")).length;
   $("#treeStats").innerHTML = `${fmtN(copies.length)} files · ${fmtN(S.rows.length - copies.length)} skipped` + (undated ? ` · <span class="pill warn">${undated} undated</span>` : "") + (unsorted ? ` · <span class="pill bad">${unsorted} unsorted</span>` : "") + (dups ? ` · <span class="pill warn">${dups} to review</span>` : "");
@@ -1236,7 +1403,7 @@ function renderExport(){
   const t = fairScores(); const c = v => `<span class="sc ${v === 1 ? "s1" : v === .5 ? "s5" : "s0"}">${v === .5 ? "0.5" : v}</span>`;
   $("#fairTable").innerHTML = `<thead><tr><th>Sub-principle</th><th>Before</th><th>After organizing</th><th>After deposit</th></tr></thead><tbody>${SUBS.map(([id, m]) => `<tr><td><span class="mono">${id}</span> ${esc(m)}</td><td>${c(t.B[id])}</td><td>${c(t.O[id])}</td><td>${c(t.D[id])}</td></tr>`).join("")}<tr><td><strong>Mean of 15</strong></td><td class="mono">${t.sB.pct.toFixed(0)}%</td><td class="mono">${t.sO.pct.toFixed(0)}%</td><td class="mono">${t.sD.pct.toFixed(0)}%</td></tr><tr><td><strong>F·A·I·R</strong> (weakest link)</td><td class="mono">${t.sB.prod.toFixed(3)}</td><td class="mono">${t.sO.prod.toFixed(3)}</td><td class="mono">${t.sD.prod.toFixed(3)}</td></tr></tbody>`;
   const d = destName();
-  $("#howto").innerHTML = [["Preview (changes nothing)", `python organize.py "${S.rootName}" "${d}"`], ["Copy into the new layout", `python organize.py "${S.rootName}" "${d}" --apply`], ["Undo", `python organize.py --undo "${d}/${metaDir()}/manifest.csv"`]].map(([l, cmd]) => `<div><div class="status">${l}</div><div class="cmd"><code>${esc(cmd)}</code><button class="btn" data-copy="${esc(cmd)}">Copy</button></div></div>`).join("");
+  $("#howto").innerHTML = [["Preview (changes nothing)", `python organize.py "${S.rootName}" "${d}"`], ["Copy into the new layout", `python organize.py "${S.rootName}" "${d}" --apply`], ["Undo (latest run)", `python organize.py --undo "${d}"`]].map(([l, cmd]) => `<div><div class="status">${l}</div><div class="cmd"><code>${esc(cmd)}</code><button class="btn" data-copy="${esc(cmd)}">Copy</button></div></div>`).join("");
   const files = kitFiles();
   if (!files[curTab]) curTab = "organize.py";
   $("#tabs").innerHTML = Object.keys(files).map(k => `<button role="tab" aria-selected="${k === curTab}" data-tab="${esc(k)}">${esc(k)}</button>`).join("");
@@ -1267,7 +1434,7 @@ function go(n){
   if (n === 4){ buildPlan(); renderExport(); }
   window.scrollTo(0, 0);
 }
-function renderAll(){ renderLoad(); renderMeta(); renderForm(); renderFollowups(); renderPlan(); if (S.step === 4) renderExport(); renderRail(); }
+function renderAll(){ renderRestore(); renderLoad(); renderMeta(); renderForm(); renderFollowups(); renderPlan(); if (S.step === 4) renderExport(); renderRail(); }
 
 // ---------------- events ----------------
 async function copyText(text, btn){
@@ -1298,7 +1465,7 @@ $("#planTable").addEventListener("change", e => {
   else if (f === "folder"){ c.folder = cleanFolder(e.target.value) || `${c.cat}/${seg(c.dtype)}`; e.target.value = c.folder; }
   else if (f === "dtype"){ c.dtype = seg(e.target.value) || c.dtype; e.target.value = c.dtype; }
   else c[f] = e.target.value;
-  replan();
+  rememberGroups(); replan();
 });
 $("#tpl").addEventListener("input", e => { S.settings.template = e.target.value || "{stem}"; saveLocal(); replan(); });
 $("#strip").addEventListener("change", e => { S.settings.strip = e.target.checked; saveLocal(); replan(); });
@@ -1339,6 +1506,13 @@ $("#pick").addEventListener("change", e => {
   e.target.value = "";
 });
 $("#loadSample").onclick = () => ingest(sampleFolder(), true);
+$("#loadSessionBtn").onclick = () => $("#sessionPick").click();
+$("#sessionPick").addEventListener("change", async e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  try { applySession(JSON.parse(await f.text())); }
+  catch (err){ const b = $("#restoreBanner"); b.hidden = false; b.textContent = "That file could not be read as a curator session (" + err.message + "). Use curator_session.json from an exported kit or the metadata folder."; }
+});
+document.addEventListener("click", e => { if (e.target.id === "forgetRestore"){ S.groupMemory = new Map(); S.restoredFrom = ""; try { const all = JSON.parse(localStorage.getItem(LS_GROUPS) || "{}"); delete all[S.rootName]; localStorage.setItem(LS_GROUPS, JSON.stringify(all)); } catch {} for (const c of S.clusters) Object.assign(c, guess(c)); S.planSource = "rules"; buildPlan(); renderAll(); renderRestore(); } });
 $("#scanMeta").onclick = scanEmbedded;
 $("#stopMeta").onclick = () => metaCtl?.abort();
 
@@ -1660,6 +1834,77 @@ function renderMeta(){
   $("#metaTable").innerHTML = byKind.size ? [...byKind].map(([k, rs]) => `<tr><td>${esc(KIND_LABEL[k] || k)}</td><td class="num">${fmtN(rs.filter(r => !r.error).length)}${rs.some(r => r.error) ? `<div class="status">${rs.filter(r => r.error).length} unreadable</div>` : ""}</td><td>${esc(summarizeRecs(rs))}</td></tr>`).join("") : `<tr><td colspan="3" class="status">Nothing read yet.</td></tr>`;
   const e = embeddedFacts();
   $("#metaFacts").innerHTML = S.meta.size ? [["Capture dates", e.start ? (e.start === e.end ? e.start : `${e.start} → ${e.end}`) : "—"], ["GPS center", e.lat != null ? `${e.lat.toFixed(5)}, ${e.lon.toFixed(5)}` : "—"], ["Geotagged images", fmtN(e.nGps)], ["Sensors seen", e.sensors.join(", ") || "—"]].map(([k, v]) => `<div class="stat"><div class="k">${k}</div><div class="v" style="font-size:14px">${esc(v)}</div></div>`).join("") : "";
+}
+
+
+// ---------------- sessions: save and reload (v0.2) ----------------
+function genSession(){
+  return JSON.stringify({
+    tool: "fair-folder-curator", version: "0.2", saved: new Date().toISOString(), root_name: S.rootName,
+    answers: S.answers, settings: S.settings, outputs: S.outputs, followups: S.followups, dtypeDesc: S.dtypeDesc,
+    groups: S.clusters.map(c => ({ id: c.id, key: c.key, dir: c.dir, ext: c.ext, pattern: c.pattern, count: c.count, bytes: c.bytes, examples: c.examples, ...Object.fromEntries(GROUP_FIELDS.map(k => [k, c[k]])) })),
+    sessions: (S.sessions || []).map(x => ({ n: x.n, date: x.date, dtypes: [...x.dtypes] })),
+    rows: S.rows.map(r => ({ old: r.old, new: r.new, size: r.size, action: r.action }))
+  }, null, 1) + "\n";
+}
+function applySession(d){
+  if (!d || typeof d !== "object" || !d.answers) throw new Error("not a curator session file");
+  Object.assign(S.answers, d.answers || {}); Object.assign(S.settings, d.settings || {}); Object.assign(S.outputs, d.outputs || {});
+  if (Array.isArray(d.followups)) S.followups = d.followups;
+  if (d.dtypeDesc) S.dtypeDesc = d.dtypeDesc;
+  S.groupMemory = new Map();
+  for (const g of (d.groups || [])){ const v = Object.fromEntries(GROUP_FIELDS.map(k => [k, g[k]])); if (g.key) S.groupMemory.set(g.key, v); S.groupMemory.set(g.dir + "|" + g.pattern, v); }
+  S.restoredFrom = "the session file saved " + String(d.saved || "").slice(0, 10) + (d.root_name ? " for " + d.root_name : "");
+  saveLocal();
+  if (S.files.length && !S.isSample){
+    S.clusters = []; buildClusters(); buildPlan(); S.planSource = S.reusedGroups ? "restored" : S.planSource;
+  } else S.pendingSession = true;
+  renderAll(); renderRestore();
+}
+function renderRestore(){
+  const b = $("#restoreBanner");
+  if (!S.restoredFrom){ b.hidden = true; return; }
+  b.hidden = false;
+  b.innerHTML = `<b>Restored from ${esc(S.restoredFrom)}.</b> Interview answers${S.files.length ? ` and ${fmtN(S.reusedGroups || 0)} of ${fmtN(S.clusters.length)} group settings` : ""} were filled in. ${S.files.length ? "" : "Now load the folder."} <button class="link" id="forgetRestore">Start fresh instead</button>`;
+}
+
+// ---------------- at-a-glance charts (v0.2) ----------------
+function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function renderViz(){
+  const copies = S.rows.filter(r => r.action === "copy" && r.new);
+  const top = new Map();
+  for (const r of copies){ const k = r.new.split("/")[0]; const t = top.get(k) || { n: 0, b: 0 }; t.n++; t.b += r.size; top.set(k, t); }
+  const items = [...top.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  const W = 380, rowH = 26, padL = 112, padR = 112, H = items.length * rowH + 30;
+  const max = Math.max(1, ...items.map(([, t]) => t.b));
+  const acc = css("--accent"), warn = css("--warn");
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Size of each top folder">`;
+  svg += `<text class="ax" x="0" y="12">top folder</text><text class="ax" x="${W}" y="12" text-anchor="end">size · files</text>`;
+  items.forEach(([k, t], i) => {
+    const y = 22 + i * rowH, w = Math.max(2, (W - padL - padR) * t.b / max);
+    svg += `<text class="lab" x="0" y="${y + 13}">${esc(k)}</text>`;
+    svg += `<rect x="${padL}" y="${y + 3}" width="${w.toFixed(1)}" height="14" rx="2" fill="${k.includes("review") || k.includes("other") ? warn : acc}"/>`;
+    svg += `<text class="ax" x="${W}" y="${y + 14}" text-anchor="end">${fmtBytes(t.b)} · ${fmtN(t.n)}</text>`;
+  });
+  $("#vizSize").innerHTML = items.length ? svg + "</svg>" : '<p class="status">No files planned yet.</p>';
+  // session timeline: one row per data type, one column per date, dot size = file count
+  const sess = S.sessions || [];
+  if (!sess.length){ $("#vizTime").innerHTML = '<p class="status">No dated files, so no timeline. Dates come from file names or from the metadata inside files.</p>'; return; }
+  const cnt = new Map(), dts = new Set();
+  for (const r of copies){ const m = r.new.match(/\/(?:\d\d_)?(\d{4}-\d\d-\d\d)\//); if (!m) continue; const dt = r.dtype || ""; dts.add(dt); const key = m[1] + "|" + dt; cnt.set(key, (cnt.get(key) || 0) + 1); }
+  const types = [...dts].sort((a, b) => dtRank(a) - dtRank(b));
+  const days = sess.map(x => x.date), t0 = Date.parse(days[0]), t1 = Date.parse(days[days.length - 1]);
+  const TW = 460, L = 130, R = 20, top0 = 34, rh = 24, TH = top0 + types.length * rh + 26;
+  const X = d => days.length === 1 ? (L + (TW - L - R) / 2) : L + (TW - L - R) * (Date.parse(d) - t0) / Math.max(1, t1 - t0);
+  const cmax = Math.max(1, ...cnt.values());
+  let t = `<svg viewBox="0 0 ${TW} ${TH}" role="img" aria-label="Files per data type per field day">`;
+  sess.forEach(x => { const xx = X(x.date); t += `<line class="grid" x1="${xx}" x2="${xx}" y1="${top0 - 8}" y2="${TH - 22}"/><text class="ax" x="${xx}" y="14" text-anchor="middle">s${x.n}</text><text class="ax" x="${xx}" y="${TH - 6}" text-anchor="middle">${x.date.slice(5)}</text>`; });
+  types.forEach((dt, i) => {
+    const y = top0 + i * rh + rh / 2;
+    t += `<text class="lab" x="0" y="${y + 4}">${esc(dt)}</text>`;
+    for (const d of days){ const c = cnt.get(d + "|" + dt); if (c) t += `<circle cx="${X(d).toFixed(1)}" cy="${y}" r="${(3 + 8 * Math.sqrt(c / cmax)).toFixed(1)}" fill="${acc}" fill-opacity=".8"><title>${esc(dt)} · ${d} · ${c} files</title></circle>`; }
+  });
+  $("#vizTime").innerHTML = t + "</svg>";
 }
 
 // ---------------- boot ----------------
