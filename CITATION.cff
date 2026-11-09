@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use this toolkit, please cite it as below."
+title: "FAIR Data Curation: apps and guides for organizing phenotyping data"
+type: software
+authors:
+  - family-names: "Jubery"
+    given-names: "Zaki"
+    affiliation: "Department of Mechanical Engineering and Translational AI Center, Iowa State University"
+repository-code: "https://github.com/znjubery/fair-data-curation"
+keywords:
+  - FAIR data
+  - data curation
+  - plant phenotyping
+  - MIAPPE
+  - Croissant
