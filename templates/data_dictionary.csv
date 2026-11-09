@@ -1,0 +1,5 @@
+column,description,unit,ontology_id,value_type,method,allowed_range,missing_code
+plot_id,Plot identifier (year_site_row_column),,,observed,,,
+date,Capture date (ISO 8601),,,observed,,,NA
+PH_cm,Plant height to top of canopy,cm (UO:0000015),CO_322:<look up>,derived,99th percentile LiDAR height above ground per plot,0-400,NA
+LAI,Leaf area index,m2/m2,<look up>,derived,<method>,0-10,NA

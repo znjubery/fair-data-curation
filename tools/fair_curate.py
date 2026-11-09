@@ -21,7 +21,7 @@ import argparse, base64, csv, datetime, hashlib, json, os, re, shutil, sys, unic
 
 VERSION = "0.2"
 
-# >>> ENGINE (shared with the organize.py that the HTML app exports; keep in sync via tools/sync_engine.py)
+# >>> ENGINE (shared with the organize.py that the HTML app exports; keep in sync via instructor/sync_engine.py)
 RESERVED = {"CON", "PRN", "AUX", "NUL", *("COM%d" % i for i in range(1, 10)), *("LPT%d" % i for i in range(1, 10))}
 
 

@@ -1,0 +1,21 @@
+{
+  "dataset": "<project title>",
+  "version": "v1.0",
+  "steps": [
+    {
+      "id": "step1_merge",
+      "inputs": ["02_raw/01_2026-06-20/lidar/*.laz"],
+      "outputs": ["03_processed/01_2026-06-20/20260620_AEA_lidar_merged_v1.laz"],
+      "value_type": "derived",
+      "software": "PDAL 2.7",
+      "script": "05_code/merge.py",
+      "git_commit": "<hash>",
+      "parameters": {"crs": "EPSG:26915"},
+      "run_by": "<name>",
+      "date": "2026-07-01"
+    }
+  ],
+  "paper_map": [
+    {"item": "Fig. 3", "files": ["04_results/plot_traits_v1.parquet"], "script": "05_code/fig3.py", "git_commit": "<hash>"}
+  ]
+}

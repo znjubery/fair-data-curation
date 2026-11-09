@@ -1,24 +1,12 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>FAIR Folder Curator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Open+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root{
-  --bg:#f2f4ef; --surface:#ffffff; --sunk:#e8ece4; --ink:#1e2922; --muted:#5b685f; --rule:#d5dbd0;
-  --accent:#2f6b4c; --accent-ink:#ffffff; --accent-soft:#dcebe2; --warn:#9a6a12; --warn-soft:#f6ecd6;
-  --bad:#a8443d; --bad-soft:#f5dfdc; --focus:#b07d1f;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#121814; --surface:#1a211c; --sunk:#141a16; --ink:#e2e8e0; --muted:#98a69c; --rule:#2c3730;
-    --accent:#6fb58c; --accent-ink:#0e1a13; --accent-soft:#213428; --warn:#d9aa52; --warn-soft:#2e2717;
-    --bad:#e2837a; --bad-soft:#35201e; --focus:#d9aa52; color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#121814; --surface:#1a211c; --sunk:#141a16; --ink:#e2e8e0; --muted:#98a69c; --rule:#2c3730;
-  --accent:#6fb58c; --accent-ink:#0e1a13; --accent-soft:#213428; --warn:#d9aa52; --warn-soft:#2e2717;
-  --bad:#e2837a; --bad-soft:#35201e; --focus:#d9aa52; color-scheme:dark;
+  --bg:#ffffff; --surface:#ffffff; --sunk:#F4F5F7; --ink:#222222; --muted:#6E6259; --rule:#d5dae1;
+  --accent:#1B3A5C; --accent-ink:#ffffff; --accent-soft:#DCE6F1; --warn:#8a5a00; --warn-soft:#FFF4DC;
+  --bad:#C8102E; --bad-soft:#FBEFF1; --focus:#0060C0;
 }
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font:15px/1.5 "IBM Plex Sans",system-ui,sans-serif}
@@ -124,6 +112,45 @@ pre.preview{margin:0;max-height:420px;overflow:auto;background:var(--sunk);paddi
 .cmd{display:flex;gap:8px;align-items:center;background:var(--sunk);border-radius:6px;padding:8px 10px;font:12.5px "IBM Plex Mono",monospace;overflow-x:auto}
 .cmd code{white-space:nowrap;flex:1}
 [hidden]{display:none!important}
+
+/* ISU / TrAC look, matching Study Card Builder */
+body{font:15px/1.5 "Open Sans","Segoe UI",Arial,sans-serif}
+.app{padding-block:0 60px}
+header.top{border-top:8px solid #C8102E;margin-inline:-16px;padding:18px 16px 14px;border-bottom:2px solid #0060C0}
+.brand .kicker{color:#0060C0;font:700 12px "Open Sans",sans-serif;letter-spacing:.04em;margin-bottom:6px}
+.brand h1{font:700 26px/1.15 Merriweather,Georgia,serif;color:#C8102E;letter-spacing:0}
+.brand p{color:#6E6259}
+.step h2{font:700 21px/1.25 Merriweather,Georgia,serif;color:#C8102E;padding-bottom:8px;border-bottom:2px solid #0060C0;margin-bottom:10px}
+.step .lede{background:#E8F4F8;color:#1B3A5C;padding:10px 14px;border-radius:4px;max-width:none}
+nav.steps{gap:0;border-top:2px solid #0060C0}
+nav.steps button{border:0;border-bottom:1px solid #e6e8eb;border-radius:0;background:#fff;font:400 14px "Open Sans",sans-serif;padding:9px 14px;color:#222}
+nav.steps button[aria-current="step"]{background:#DCE6F1;color:#1B3A5C;font-weight:700}
+nav.steps button b{background:#8C97A6;color:#fff}
+nav.steps button[aria-current="step"] b{background:#1B3A5C;color:#fff}
+nav.steps button.done b{background:#2e8540;color:#fff}
+button.btn{font:600 14px "Open Sans",sans-serif;border-color:#1B3A5C;color:#1B3A5C;border-radius:4px}
+button.btn.primary{background:#C8102E;border-color:#C8102E;color:#fff}
+button.link{color:#0060C0}
+.panel{border-color:#d5dae1;border-radius:6px}
+.drop{background:#F7FAFD;border-color:#9fb4cc}
+.drop strong{font:700 17px Merriweather,Georgia,serif;color:#1B3A5C}
+.drop.over{border-color:#C8102E;background:#FBEFF1}
+.banner{background:#E8F4F8;border-color:#E8F4F8;color:#1B3A5C}
+.banner b{color:#C8102E}
+th{background:#1B3A5C;color:#fff;font:600 12px "Open Sans",sans-serif;text-transform:none;letter-spacing:0}
+.rail h3{color:#1B3A5C;font:700 13px "Open Sans",sans-serif}
+.q{border-left-color:#C8102E}
+.chip[aria-pressed="true"]{background:#1B3A5C;border-color:#1B3A5C}
+.tabs button[aria-selected="true"]{color:#fff;background:#1B3A5C;border-radius:4px 4px 0 0;border-bottom-color:#1B3A5C}
+.stat .v{color:#C8102E}
+input:focus,select:focus,textarea:focus{outline:2px solid #0060C0;border-color:#0060C0}
+main.grid>div,.step,.panel{min-width:0}
+.checks{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+body{border-top:8px solid #C8102E}
+header.top{border-top:0}
+label.f > .tag{justify-self:start;width:max-content}
+input[type=text],input[type=date],input[type=search],select,textarea,.chip,button.btn,nav.steps button{font-family:"Open Sans","Segoe UI",Arial,sans-serif}
+td input[type=text],td select{font-family:"IBM Plex Mono",monospace}
 .viz{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:16px}
 @media (max-width:760px){.viz{grid-template-columns:1fr}}
 .viz svg{width:100%;height:auto;display:block}
@@ -136,7 +163,8 @@ pre.preview{margin:0;max-height:420px;overflow:auto;background:var(--sunk);paddi
 <div class="app">
 <header class="top">
   <div class="brand">
-    <h1>FAIR Folder Curator<span class="ver">v0.2</span></h1>
+    <div class="kicker">FAIR DATA CURATION · BASKAR LAB · ISU TrAC</div>
+    <h1>FAIR Folder Curator<span class="ver">v0.3</span></h1>
     <p>Turn a messy data folder into a clean, documented dataset. A data-curator agent asks what it needs, proposes a layout, and hands you a script that copies your files into it.</p>
   </div>
   <nav class="steps" aria-label="Steps">
@@ -160,8 +188,9 @@ pre.preview{margin:0;max-height:420px;overflow:auto;background:var(--sunk);paddi
       <input type="file" id="pick" webkitdirectory directory multiple hidden>
       <div class="banner" id="sampleBanner" hidden><b>Example folder loaded.</b> This is a made-up messy maize drone folder so you can see how the app works. Load your own folder above to replace it.</div>
       <div class="panel stack" id="scanPanel">
-        <div class="row spread"><strong id="rootName">Folder</strong><span class="row"><button class="link" id="loadSessionBtn">Load previous session (.json)</button><button class="link" id="loadSample">Load example folder</button></span></div>
+        <div class="row spread"><strong id="rootName">Folder</strong><span class="row"><button class="link" id="loadCardBtn">Load study card (.json)</button><button class="link" id="loadSessionBtn">Load previous session (.json)</button><button class="link" id="loadSample">Load example folder</button></span></div>
         <input type="file" id="sessionPick" accept=".json,application/json" hidden>
+        <input type="file" id="cardPick" accept=".json,application/json" hidden>
         <div class="banner" id="restoreBanner" hidden></div>
         <div class="stats" id="stats"></div>
         <div class="extbar" id="extbar"></div>
@@ -189,6 +218,7 @@ pre.preview{margin:0;max-height:420px;overflow:auto;background:var(--sunk);paddi
     <h2>Curator interview</h2>
     <p class="lede">Fill in what you know. Then ask the curator to read the file names: it suggests answers it can see evidence for (marked <span class="tag">guess</span>) and asks follow-up questions about the rest.</p>
     <div class="stack">
+      <div class="banner" id="cardBanner" hidden></div>
       <div class="panel stack">
         <div class="row spread">
           <strong>Ask the curator</strong>
@@ -249,6 +279,7 @@ pre.preview{margin:0;max-height:420px;overflow:auto;background:var(--sunk);paddi
     <h2>Export the organize kit</h2>
     <p class="lede">Choose what to generate. The kit is one zip with <code>organize.py</code> (Python 3, no installs) and the files you picked. The script copies files by default, so your originals stay where they are.</p>
     <div class="stack">
+      <div class="banner" id="cardOutNote" hidden></div>
       <div class="checks" id="outChecks"></div>
       <div class="panel stack">
         <div class="row spread"><strong>FAIR score</strong><span class="status">15 sub-principles scored 0, 0.5 or 1</span></div>
@@ -320,8 +351,8 @@ function rememberGroups(){
     localStorage.setItem(LS_GROUPS, JSON.stringify(all));
   } catch {}
 }
-function saveLocal(){ try { localStorage.setItem(LS_KEY, JSON.stringify({answers:S.answers, settings:S.settings, outputs:S.outputs})); } catch {} }
-function loadLocal(){ try { const d = JSON.parse(localStorage.getItem(LS_KEY) || "null"); if (d){ Object.assign(S.answers, d.answers||{}); Object.assign(S.settings, d.settings||{}); Object.assign(S.outputs, d.outputs||{}); } } catch {} }
+function saveLocal(){ try { localStorage.setItem(LS_KEY, JSON.stringify({answers:S.answers, settings:S.settings, outputs:S.outputs, studyCard:S.studyCard||null, cardKeys:[...(S.cardKeys||[])]})); } catch {} }
+function loadLocal(){ try { const d = JSON.parse(localStorage.getItem(LS_KEY) || "null"); if (d){ Object.assign(S.answers, d.answers||{}); Object.assign(S.settings, d.settings||{}); Object.assign(S.outputs, d.outputs||{}); if (d.studyCard){ S.studyCard = d.studyCard; S.cardKeys = new Set(d.cardKeys||[]); } } } catch {} }
 
 // ---------------- file analysis ----------------
 const COMPOUND = [".tar.gz",".vcf.gz",".fastq.gz",".fq.gz",".nii.gz",".csv.gz",".txt.gz",".hmp.txt"];
@@ -966,7 +997,7 @@ __EXTRA__
 DEFAULT_CHECKSUM = __CHK__
 META_DIR = "__META__"
 
-# >>> ENGINE (shared with the organize.py that the HTML app exports; keep in sync via tools/sync_engine.py)
+# >>> ENGINE (shared with the organize.py that the HTML app exports; keep in sync via instructor/sync_engine.py)
 RESERVED = {"CON", "PRN", "AUX", "NUL", *("COM%d" % i for i in range(1, 10)), *("LPT%d" % i for i in range(1, 10))}
 
 
@@ -1288,8 +1319,15 @@ If files were renamed after you made the plan, the dry run lists them as missing
 }
 
 // ---------------- rendering ----------------
-const SENSORS = ["UAV RGB","UAV multispectral","LiDAR","Hyperspectral","Turntable / lab imaging","Handheld photos","3D reconstruction (SfM/NeRF/3DGS)","Genotypes","Weather","Manual measurements"];
+const SENSORS = ["UAV RGB","UAV multispectral","LiDAR","Satellite imagery","Ground rover video","Hyperspectral","Turntable / lab imaging","Handheld photos","Root imaging","3D reconstruction (SfM/NeRF/3DGS)","Light / PAR sensors","Robot episodes","Impedance / lab instrument","Genotypes","Weather","Manual measurements","Crop model runs","Synthetic / simulated"];
+const DATASET_TYPES = [["", "Choose…"],
+ ["par","a. PAR sensor calibration"],["lerobot","b. LeRobot training data"],["tassel_uav","c. Tassel images, UAV + 3D"],["sorghum","d. Sorghum stalk panorama"],["tassel_hand","e. Tassel images, handheld + 3D"],["hinalea","f. Hyperspectral 3D maize ear (Hinalea)"],
+ ["uav_lidar","UAV LiDAR + RGB field season"],["uav_ms","UAV multispectral / RGB imagery"],["satellite","Satellite imagery"],["rover","Ground rover video / images for 3D"],["manual","Field manual measurements / harvest"],
+ ["turntable","Turntable 3D scans of potted plants"],["roots","Root imaging / root architecture"],["impedance","Lab instrument: impedance spectroscopy"],
+ ["genotypes","Genotype / SNP data"],["apsim","Crop model runs (APSIM)"],["synthetic","Synthetic 3D plants / simulated images"],["other","Other dataset"]];
+const TYPE_LABEL = Object.fromEntries(DATASET_TYPES.slice(1).map(([k,l]) => [l,k]));
 const FIELDS = [
+  { k: "dataset_type", label: "Dataset type", type: "select", opts: DATASET_TYPES.map(x => x[1] === "Choose…" ? "" : x[1]), hint: "same list as the Study Card Builder; fills the sensor chips" },
   { k: "title", label: "Project title", ph: "Maize UAV LiDAR plant height 2025" },
   { k: "site_code", label: "Short site code for file names", ph: "AEA", hint: "3–6 letters, used in {site}" },
   { k: "description", label: "What is this data? (2–3 sentences)", type: "area", wide: 1, ph: "UAV RGB and LiDAR flights over 480 maize hybrids at two dates, plus hyperspectral ear scans and SNP genotypes." },
@@ -1298,7 +1336,7 @@ const FIELDS = [
   { k: "orcid", label: "ORCID iD", ph: "0000-0000-0000-0000" },
   { k: "institution", label: "Institution", ph: "Iowa State University" },
   { k: "funding", label: "Funder and grant number", ph: "USDA-NIFA AFRI award number" },
-  { k: "organism", label: "Crop / organism", type: "select", opts: ["", "Zea mays (maize)", "Glycine max (soybean)", "Sorghum bicolor (sorghum)", "Malus domestica (apple)", "Other"] },
+  { k: "organism", label: "Crop / organism", type: "select", opts: ["", "Zea mays (maize)", "Glycine max (soybean)", "Sorghum bicolor (sorghum)", "Vigna radiata (mungbean)", "Crocus sativus (saffron)", "Malus domestica (apple)", "None (not a plant dataset)", "Other"] },
   { k: "site", label: "Field site / location", ph: "ISU Agronomy Farm, Boone, IA" },
   { k: "latlon", label: "Latitude, longitude", ph: "42.0, -93.7", hint: "optional" },
   { k: "year", label: "Season / year", ph: "2025", hint: "helps read dates like \"july 14\"" },
@@ -1312,23 +1350,37 @@ const FIELDS = [
   { k: "doi", label: "DOI (if it already has one)", ph: "10.xxxx/xxxxx" },
   { k: "links", label: "Related paper, code or data links", type: "area", wide: 1 }
 ];
-function renderForm(){
-  const box = $("#form");
-  box.innerHTML = FIELDS.map(f => {
+function fieldHtml(f){
     const v = S.answers[f.k] ?? ""; const g = S.guessed.has(f.k);
-    const lab = `${esc(f.label)}${g ? '<span class="tag">guess</span>' : ""}${f.hint ? ` <span class="h">${esc(f.hint)}</span>` : ""}`;
+    const fromCard = S.cardKeys && S.cardKeys.has(f.k);
+    const lab = `${esc(f.label)}${g ? '<span class="tag">guess</span>' : ""}${fromCard ? '<span class="tag" style="background:#DCE6F1;color:#1B3A5C;border-color:#1B3A5C">study card</span>' : ""}${f.hint ? ` <span class="h">${esc(f.hint)}</span>` : ""}`;
     let ctl;
     if (f.type === "area") ctl = `<textarea id="f_${f.k}" placeholder="${esc(f.ph || "")}">${esc(v)}</textarea>`;
-    else if (f.type === "select") ctl = `<select id="f_${f.k}">${f.opts.map(o => `<option ${o === v ? "selected" : ""} value="${esc(o)}">${esc(o || "Choose…")}</option>`).join("")}</select>`;
+    else if (f.type === "select") ctl = `<select id="f_${f.k}">${(f.opts.includes(v) ? f.opts : f.opts.concat([v])).map(o => `<option ${o === v ? "selected" : ""} value="${esc(o)}">${esc(o || "Choose…")}</option>`).join("")}</select>`;
     else if (f.type === "chips") ctl = `<div class="chips" id="f_${f.k}">${SENSORS.map(s => `<button type="button" class="chip" aria-pressed="${(v || []).includes(s)}" data-s="${esc(s)}">${esc(s)}</button>`).join("")}</div>`;
     else ctl = `<input id="f_${f.k}" type="${f.type === "date" ? "date" : "text"}" value="${esc(v)}" placeholder="${esc(f.ph || "")}">`;
     return `<label class="f ${f.wide ? "wide" : ""} ${g ? "guess" : ""}" data-k="${f.k}">${lab}${ctl}</label>`;
-  }).join("");
+}
+const isEmptyAns = v => v == null || v === "" || (Array.isArray(v) && !v.length);
+function renderForm(){
+  const box = $("#form");
+  if (!S.studyCard){ box.innerHTML = FIELDS.map(fieldHtml).join(""); renderCardBanner(); return; }
+  const missing = FIELDS.filter(f => isEmptyAns(S.answers[f.k]));
+  const have = FIELDS.filter(f => !isEmptyAns(S.answers[f.k]));
+  box.innerHTML = (missing.length ? `<div class="wide status"><b style="color:#C8102E">Still needed (${missing.length}):</b> these were not in the study card.</div>` + missing.map(fieldHtml).join("") : `<div class="wide status"><b style="color:#2e8540">Nothing missing.</b> Every interview answer came from the study card.</div>`) +
+    `<details class="wide" style="margin-top:6px"><summary style="cursor:pointer;color:#1B3A5C;font-weight:700">Already answered in the study card (${have.length}) — open to check or edit</summary><div class="form" style="margin-top:12px">${have.map(fieldHtml).join("")}</div></details>`;
+  renderCardBanner();
+}
+function renderCardBanner(){
+  const b = $("#cardBanner"); if (!b) return;
+  if (!S.studyCard){ b.hidden = false; b.innerHTML = `<b>Tip:</b> fill the <b>Study Card Builder</b> first, then press <b>Load study card</b> in step 1. The interview then asks only what is missing, and README / MIAPPE / Croissant come from one place.`; return; }
+  b.hidden = false; b.innerHTML = `<b>Study card loaded:</b> ${esc(S.studyCard.title || "(no title)")}${S.studyCard.type ? " · " + esc(S.studyCard.type) : ""}. Answers marked <span class="tag" style="background:#DCE6F1;color:#1B3A5C;border-color:#1B3A5C">study card</span> came from it. Edit them in the Study Card Builder so both stay the same. <button class="link" id="dropCard">Unlink study card</button>`;
 }
 function onFormInput(e){
   const lab = e.target.closest("label.f"); if (!lab) return;
   const k = lab.dataset.k; if (k === "sensors") return;
-  S.answers[k] = e.target.value; S.guessed.delete(k); lab.classList.remove("guess"); lab.querySelector(".tag")?.remove();
+  S.answers[k] = e.target.value;
+  if (k === "dataset_type" && e.type === "change"){ const tk = TYPE_LABEL[e.target.value]; if (tk && isEmptyAns(S.answers.sensors) && (TYPE_SENSORS[tk] || []).length){ S.answers.sensors = TYPE_SENSORS[tk].slice(); S.guessed.add("sensors"); saveLocal(); renderForm(); return; } } S.guessed.delete(k); lab.classList.remove("guess"); lab.querySelector(".tag")?.remove();
   saveLocal(); renderRail();
 }
 function onFormClick(e){
@@ -1399,6 +1451,7 @@ function kitFiles(){
   return x;
 }
 function renderExport(){
+  const cn = $("#cardOutNote"); if (cn){ cn.hidden = !S.studyCard; if (S.studyCard) cn.innerHTML = `<b>Study card linked.</b> README, MIAPPE and Croissant are switched off here because the Study Card Builder writes them (one source of truth). Download those from the builder and put them in the metadata folder. Tick them here only if you are not using the builder.`; }
   $("#outChecks").innerHTML = OUTS.map(([k, t, d]) => `<label class="check"><input type="checkbox" id="o_${k}" data-o="${k}" ${S.outputs[k] ? "checked" : ""}><span><b>${t}</b><span>${d}</span></span></label>`).join("");
   const t = fairScores(); const c = v => `<span class="sc ${v === 1 ? "s1" : v === .5 ? "s5" : "s0"}">${v === .5 ? "0.5" : v}</span>`;
   $("#fairTable").innerHTML = `<thead><tr><th>Sub-principle</th><th>Before</th><th>After organizing</th><th>After deposit</th></tr></thead><tbody>${SUBS.map(([id, m]) => `<tr><td><span class="mono">${id}</span> ${esc(m)}</td><td>${c(t.B[id])}</td><td>${c(t.O[id])}</td><td>${c(t.D[id])}</td></tr>`).join("")}<tr><td><strong>Mean of 15</strong></td><td class="mono">${t.sB.pct.toFixed(0)}%</td><td class="mono">${t.sO.pct.toFixed(0)}%</td><td class="mono">${t.sD.pct.toFixed(0)}%</td></tr><tr><td><strong>F·A·I·R</strong> (weakest link)</td><td class="mono">${t.sB.prod.toFixed(3)}</td><td class="mono">${t.sO.prod.toFixed(3)}</td><td class="mono">${t.sD.prod.toFixed(3)}</td></tr></tbody>`;
@@ -1509,10 +1562,66 @@ $("#loadSample").onclick = () => ingest(sampleFolder(), true);
 $("#loadSessionBtn").onclick = () => $("#sessionPick").click();
 $("#sessionPick").addEventListener("change", async e => {
   const f = e.target.files[0]; e.target.value = ""; if (!f) return;
-  try { applySession(JSON.parse(await f.text())); }
+  try { const d = JSON.parse(await f.text()); if (d && d.f && !d.answers) applyStudyCard(d); else applySession(d); }
   catch (err){ const b = $("#restoreBanner"); b.hidden = false; b.textContent = "That file could not be read as a curator session (" + err.message + "). Use curator_session.json from an exported kit or the metadata folder."; }
 });
 document.addEventListener("click", e => { if (e.target.id === "forgetRestore"){ S.groupMemory = new Map(); S.restoredFrom = ""; try { const all = JSON.parse(localStorage.getItem(LS_GROUPS) || "{}"); delete all[S.rootName]; localStorage.setItem(LS_GROUPS, JSON.stringify(all)); } catch {} for (const c of S.clusters) Object.assign(c, guess(c)); S.planSource = "rules"; buildPlan(); renderAll(); renderRestore(); } });
+
+// ---------------- study card import (Study Card Builder progress file) ----------------
+const ORG_MAP = [[/zea|maize|corn/i,"Zea mays (maize)"],[/glycine|soybean/i,"Glycine max (soybean)"],[/sorghum/i,"Sorghum bicolor (sorghum)"],[/vigna|mung/i,"Vigna radiata (mungbean)"],[/crocus|saffron/i,"Crocus sativus (saffron)"],[/^none/i,"None (not a plant dataset)"]];
+const TYPE_SENSORS = { par:["Light / PAR sensors","Weather"], lerobot:["Robot episodes","Handheld photos"], tassel_uav:["UAV RGB","3D reconstruction (SfM/NeRF/3DGS)","Manual measurements"], sorghum:["Handheld photos","Manual measurements"], tassel_hand:["Handheld photos","3D reconstruction (SfM/NeRF/3DGS)"], hinalea:["Hyperspectral","Turntable / lab imaging","3D reconstruction (SfM/NeRF/3DGS)"],
+  uav_lidar:["LiDAR","UAV RGB"], uav_ms:["UAV multispectral"], satellite:["Satellite imagery"], rover:["Ground rover video","3D reconstruction (SfM/NeRF/3DGS)"], manual:["Manual measurements"], turntable:["Turntable / lab imaging","3D reconstruction (SfM/NeRF/3DGS)"], roots:["Root imaging"], impedance:["Impedance / lab instrument"], genotypes:["Genotypes"], apsim:["Crop model runs","Weather"], synthetic:["Synthetic / simulated"], other:[] };
+function sensorsFromCard(d){
+  const out = new Set(TYPE_SENSORS[d.type] || []);
+  for (const sn of (d.f.sensors || [])){
+    const t = ((sn.role || "") + " " + (sn.model || "") + " " + (sn.platform || "")).toLowerCase();
+    if (/lidar/.test(t)) out.add("LiDAR");
+    if (/hyperspectral|hinalea|specim|headwall/.test(t)) out.add("Hyperspectral");
+    if (/multispectral|micasense|rededge/.test(t)) out.add("UAV multispectral");
+    if (/(drone|uav)/.test(t) && /(rgb|camera)/.test(t)) out.add("UAV RGB");
+    if (/turntable/.test(t)) out.add("Turntable / lab imaging");
+    if (/handheld/.test(t)) out.add("Handheld photos");
+    if (/quantum|light sensor|bh1750|\bpar\b/.test(t)) out.add("Light / PAR sensors");
+    if (/weather|mesonet/.test(t)) out.add("Weather");
+    if (/satellite|pl[eé]iades|planet|sentinel/.test(t)) out.add("Satellite imagery");
+    if (/rover/.test(t)) out.add("Ground rover video");
+    if (/arm|so-101|so101|leader|follower/.test(t)) out.add("Robot episodes");
+    if (/impedance|analyzer/.test(t)) out.add("Impedance / lab instrument");
+    if (/root|rhizotron/.test(t)) out.add("Root imaging");
+  }
+  if ((d.f.variables || []).some(v => v.column && v.value_type === "observed")) out.add("Manual measurements");
+  return [...out].filter(x => SENSORS.includes(x));
+}
+function applyStudyCard(d){
+  if (!d || typeof d !== "object" || !d.f) throw new Error("not a Study Card Builder progress file");
+  const f = d.f, put = {};
+  const dt = DATASET_TYPES.find(x => x[0] === d.type); put.dataset_type = dt && d.type ? dt[1] : "";
+  put.title = f.title; put.site_code = f.site_code; put.description = f.description;
+  put.contact = f.steward_name; put.email = f.steward_email; put.orcid = f.steward_orcid; put.institution = f.institution;
+  put.funding = [f.funder, f.award].filter(Boolean).join(" ");
+  const org = ORG_MAP.find(([re]) => re.test(f.species || "")); put.organism = org ? org[1] : (f.species || "");
+  put.site = f.site; put.latlon = (f.lat && f.lon) ? `${f.lat}, ${f.lon}` : "";
+  put.start = f.start; put.end = f.end; put.year = (f.start || "").slice(0, 4);
+  put.sensors = sensorsFromCard(d);
+  put.traits = (f.variables || []).filter(v => v.column).map(v => `${v.column}${v.description ? " = " + v.description : ""}${v.unit && v.unit !== "-" ? " (" + v.unit + ")" : ""}${v.ontology_id ? " " + v.ontology_id : ""}`).join("; ");
+  put.processing = (f.steps || []).filter(x => x.step).map((x, i) => `${i + 1}. ${x.step}: ${[x.software, x.version].filter(Boolean).join(" ")}${x.git_commit ? " (commit " + x.git_commit + ")" : ""}`).join("\n");
+  put.license = f.license === "restricted (see access)" ? "Restricted (internal / data-use agreement)" : f.license;
+  const tier = String(f.tier || "").charAt(0); put.access = tier === "0" ? "Open" : tier === "1" ? "Open after embargo" : tier === "2" ? "Restricted: request access" : "";
+  put.doi = f.doi; put.links = [f.paper, f.code_url && (f.code_url + (f.code_commit ? " @ " + f.code_commit : "")), f.landing].filter(Boolean).join("\n");
+  S.cardKeys = new Set();
+  for (const [k, v] of Object.entries(put)){ if (!isEmptyAns(v)){ S.answers[k] = v; S.cardKeys.add(k); S.guessed.delete(k); } }
+  S.studyCard = { title: f.title || "", type: d.type || "", loaded: new Date().toISOString().slice(0, 10) };
+  // one source of truth: these come from the Study Card Builder now
+  S.outputs.readme = false; S.outputs.miappe = false; S.outputs.croissant = false;
+  saveLocal(); renderAll();
+}
+$("#loadCardBtn").onclick = () => $("#cardPick").click();
+$("#cardPick").addEventListener("change", async e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  try { applyStudyCard(JSON.parse(await f.text())); const b = $("#restoreBanner"); b.hidden = false; b.innerHTML = `<b>Study card loaded.</b> Go to step 2: the interview now shows only what is still missing.`; }
+  catch (err){ const b = $("#restoreBanner"); b.hidden = false; b.textContent = "That file is not a Study Card Builder progress file (" + err.message + "). In the builder use “Save progress (.json)”."; }
+});
+document.addEventListener("click", e => { if (e.target.id === "dropCard"){ S.studyCard = null; S.cardKeys = new Set(); S.outputs.readme = S.outputs.miappe = S.outputs.croissant = true; saveLocal(); renderAll(); } });
 $("#scanMeta").onclick = scanEmbedded;
 $("#stopMeta").onclick = () => metaCtl?.abort();
 
@@ -1841,7 +1950,7 @@ function renderMeta(){
 function genSession(){
   return JSON.stringify({
     tool: "fair-folder-curator", version: "0.2", saved: new Date().toISOString(), root_name: S.rootName,
-    answers: S.answers, settings: S.settings, outputs: S.outputs, followups: S.followups, dtypeDesc: S.dtypeDesc,
+    answers: S.answers, settings: S.settings, outputs: S.outputs, study_card: S.studyCard || null, followups: S.followups, dtypeDesc: S.dtypeDesc,
     groups: S.clusters.map(c => ({ id: c.id, key: c.key, dir: c.dir, ext: c.ext, pattern: c.pattern, count: c.count, bytes: c.bytes, examples: c.examples, ...Object.fromEntries(GROUP_FIELDS.map(k => [k, c[k]])) })),
     sessions: (S.sessions || []).map(x => ({ n: x.n, date: x.date, dtypes: [...x.dtypes] })),
     rows: S.rows.map(r => ({ old: r.old, new: r.new, size: r.size, action: r.action }))

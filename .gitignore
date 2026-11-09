@@ -8,3 +8,10 @@
 *.fdb_latexmk
 *.xdv
 __pycache__/
+
+# Local only: needs PI permission / internal prep
+docs/01_curation_methods.md
+docs/05_miappe_student_prep.md
+instructor/talk/*.pptx
+app/mosaic-layer.html
+instructor/video/*.mp4

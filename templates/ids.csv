@@ -1,0 +1,5 @@
+entity_type,local_id,public_id,public_source,parent_id,notes
+genotype,B73,PI 550473,GRIN,,
+plot,2026_AEA_R03_C12,,,B73,year_site_row_column
+plant,2026_AEA_R03_C12_p01,,,2026_AEA_R03_C12,
+sample,2026_AEA_R03_C12_root01,,IGSN (if registered),2026_AEA_R03_C12_p01,

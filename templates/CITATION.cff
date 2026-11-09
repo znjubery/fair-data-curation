@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use this dataset, please cite it as below."
+title: "<dataset title>"
+type: dataset
+version: "1.0.0"
+date-released: "YYYY-MM-DD"
+doi: "10.xxxx/xxxxx"
+license: CC-BY-4.0
+authors:
+  - family-names: "<Family>"
+    given-names: "<Given>"
+    orcid: "https://orcid.org/<id>"
+    affiliation: "Iowa State University"

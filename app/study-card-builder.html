@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study Card Builder · FAIR Data Curation</title>
+<style>
+:root{--red:#C8102E;--blue:#0060C0;--navy:#1B3A5C;--gray:#6E6259;--dark:#222;--t1:#DCE6F1;--t2:#E8F4F8;--t3:#D4EDDA;--t4:#F2F2F2;--pink:#FBEFF1}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Open Sans",Segoe UI,Arial,sans-serif;color:var(--dark);background:#fff}
+header{border-top:8px solid var(--red);padding:18px 28px 10px}
+header .kicker{color:var(--blue);font-weight:700;font-size:12px;letter-spacing:.04em}
+header h1{font-family:Merriweather,Georgia,serif;color:var(--red);margin:6px 0 4px;font-size:26px}
+header p{margin:0;color:var(--gray)}
+.wrap{display:flex;gap:24px;padding:12px 28px 40px;max-width:1300px}
+nav{width:250px;flex:none}
+nav ol{list-style:none;padding:0;margin:0;border-top:2px solid var(--blue)}
+nav li{padding:9px 10px;border-bottom:1px solid #e6e8eb;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:14px}
+nav li.active{background:var(--t1);font-weight:700;color:var(--navy)}
+nav li .badge{font-size:11px;color:#fff;background:#8C97A6;border-radius:10px;padding:1px 7px}
+nav li .badge.ok{background:#2e8540}
+.meter{margin:14px 0 6px;font-size:13px;color:var(--gray)}
+.bar{height:10px;background:var(--t4);border-radius:5px;overflow:hidden}
+.bar>div{height:100%;background:var(--red);width:0}
+.navbtns{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+main{flex:1;min-width:0}
+h2{font-family:Merriweather,Georgia,serif;color:var(--red);font-size:21px;margin:4px 0 2px;padding-bottom:8px;border-bottom:2px solid var(--blue)}
+.help{background:var(--t2);padding:10px 14px;margin:12px 0;color:var(--navy);font-size:14px;border-radius:4px}
+.field{margin:14px 0}
+.field label{display:block;font-weight:700;color:var(--navy);font-size:14px;margin-bottom:4px}
+.field .hint{font-size:12.5px;color:var(--gray);margin-top:3px}
+.req{color:var(--red)}
+.day{display:inline-block;font-size:10.5px;font-weight:700;color:#fff;background:var(--red);border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:1px}
+input[type=text],input[type=date],input[type=number],input[type=email],select,textarea{width:100%;padding:8px 10px;border:1px solid #c9ced6;border-radius:4px;font:inherit;font-size:14px}
+textarea{min-height:76px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-color:var(--blue)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+button{font:inherit;font-size:14px;padding:8px 14px;border-radius:4px;border:1px solid var(--navy);background:#fff;color:var(--navy);cursor:pointer}
+button.primary{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
+button.small{padding:4px 9px;font-size:12.5px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+.card{padding:14px;border-radius:5px;cursor:pointer;border:2px solid transparent;background:var(--t1)}
+.card:nth-child(3n+2){background:var(--t2)} .card:nth-child(3n){background:var(--t3)}
+.card.sel{border-color:var(--red)}
+.card b{color:var(--navy);display:block;margin-bottom:4px}
+.card span{font-size:13px;color:var(--gray)}
+table.grid{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+table.grid th{background:var(--navy);color:#fff;text-align:left;padding:6px}
+table.grid td{padding:4px;border-bottom:1px solid #eee;vertical-align:top}
+table.grid input,table.grid select{padding:5px 6px;font-size:13px}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin-top:12px}
+.tabs button{border-radius:4px 4px 0 0;border-bottom:none}
+.tabs button.on{background:var(--navy);color:#fff}
+pre{background:#F4F5F7;border:1px solid #e1e4e8;padding:12px;overflow:auto;max-height:460px;font-size:12.5px;margin:0}
+.checklist li{margin:4px 0;font-size:14px}
+.miss{color:var(--red)} .okc{color:#2e8540}
+.footer{display:flex;justify-content:space-between;margin-top:22px;padding-top:12px;border-top:1px solid #e6e8eb}
+.oneline{background:var(--pink);padding:10px 14px;border-radius:4px;margin-top:14px;font-size:14px}
+.oneline b{color:var(--red)}
+@media(max-width:900px){.wrap{flex-direction:column}nav{width:auto}.cards{grid-template-columns:1fr}.row,.row3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">FAIR DATA CURATION · BASKAR LAB · ISU TrAC</div>
+  <h1>Study Card Builder</h1>
+  <p>Answer the questions once. The app writes your study card, README, data dictionary, MIAPPE, Croissant and DOI record. Nothing leaves your computer.</p>
+</header>
+<div class="wrap">
+  <nav>
+    <ol id="steps"></ol>
+    <div class="meter"><span id="pct">0%</span> of required fields filled</div>
+    <div class="bar"><div id="barfill"></div></div>
+    <div class="navbtns">
+      <button onclick="saveProgress()">Save progress (.json)</button>
+      <button onclick="document.getElementById('loadfile').click()">Load saved progress</button>
+      <input type="file" id="loadfile" accept=".json" style="display:none" onchange="loadProgress(event)">
+      <button onclick="document.getElementById('curfile').click()">Import from Curator session</button>
+      <input type="file" id="curfile" accept=".json" style="display:none" onchange="importCurator(event)">
+      <button id="startOver" onclick="startOver(this)">Start over</button>
+    </div>
+    <p style="font-size:12px;color:var(--gray);margin-top:12px"><span class="day">ON THE DAY</span> = record while collecting. Nothing can recover it later.</p>
+  </nav>
+  <main id="main"></main>
+</div>
+<div id="toast" role="status" style="position:fixed;left:50%;bottom:22px;transform:translateX(-50%);max-width:640px;background:#1B3A5C;color:#fff;padding:12px 16px;border-radius:6px;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.2);display:none;white-space:pre-line;z-index:10"></div>
+<div style="display:none">
+</div>
+<script type="text/plain" id="manifestpy">#!/usr/bin/env python3
+"""make_manifest.py: checksums + quality report for one organized dataset folder.
+
+Usage (Python 3.8+, no installs):
+    python make_manifest.py "path/to/2026_AEA_my-dataset"
+    python make_manifest.py "path/to/folder" --id-regex "^\\d{4}_[A-Z]+_R\\d{2}_C\\d{2}"
+
+Writes into &lt;folder>/01_metadata/:
+    MANIFEST.sha256   one line per file: &lt;sha256>  &lt;relative path>   (verify later with: sha256sum -c)
+    manifest.csv      path, bytes, sha256, modified
+    qc_report.md      problems found: junk files, duplicates, empty files, unsafe names,
+                      files outside the numbered folders, long Windows paths, ID pattern misses
+It also fills the sha256 of any croissant.json file entry whose contentUrl matches a real file.
+Nothing is moved or deleted.
+"""
+import argparse, csv, hashlib, json, os, re, sys, time
+from pathlib import Path
+
+JUNK = re.compile(r"^(\.ds_store|thumbs\.db|desktop\.ini|~\$.*|\._.*|.*\.tmp)$", re.I)
+UNSAFE = re.compile(r"[^A-Za-z0-9._\-]")
+TOP = {"README.md", "00_docs", "01_metadata", "02_raw", "03_processed", "04_results", "05_code", "99_review", "splits", "LICENSE", "CITATION.cff"}
+SKIP_DIRS = {".git", ".dvc", "__pycache__", ".ipynb_checkpoints"}
+OWN = {"MANIFEST.sha256", "manifest.csv", "qc_report.md"}
+
+
+def sha256(p, buf=1 &lt;&lt; 20):
+    h = hashlib.sha256()
+    with open(p, "rb") as f:
+        for chunk in iter(lambda: f.read(buf), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("folder")
+    ap.add_argument("--id-regex", default="", help="regular expression every data file name under 02_raw should match")
+    a = ap.parse_args()
+    root = Path(a.folder).resolve()
+    if not root.is_dir():
+        sys.exit(f"Not a folder: {root}")
+    meta = root / "01_metadata"
+    meta.mkdir(exist_ok=True)
+    idre = re.compile(a.id_regex) if a.id_regex else None
+
+    rows, seen = [], {}
+    issues = {k: [] for k in ["junk", "duplicate", "empty", "unsafe name", "outside layout", "long path", "ID pattern"]}
+    files = []
+    for dp, dns, fns in os.walk(root):
+        dns[:] = sorted(d for d in dns if d not in SKIP_DIRS)
+        for fn in sorted(fns):
+            p = Path(dp) / fn
+            rel = p.relative_to(root).as_posix()
+            if rel.startswith("01_metadata/") and fn in OWN:
+                continue
+            files.append((p, rel))
+    t0 = time.time()
+    for i, (p, rel) in enumerate(files, 1):
+        size = p.stat().st_size
+        digest = sha256(p)
+        rows.append({"path": rel, "bytes": size, "sha256": digest,
+                     "modified": time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(p.stat().st_mtime))})
+        name = p.name
+        if JUNK.match(name):
+            issues["junk"].append(rel)
+        elif digest in seen:
+            issues["duplicate"].append(f"{rel}  (same bytes as {seen[digest]})")
+        else:
+            seen[digest] = rel
+        if size == 0:
+            issues["empty"].append(rel)
+        if UNSAFE.search(name):
+            issues["unsafe name"].append(rel)
+        if rel.split("/")[0] not in TOP:
+            issues["outside layout"].append(rel)
+        if len(str(p)) > 240:
+            issues["long path"].append(rel)
+        if idre and rel.startswith("02_raw/") and not idre.search(name) and not name.startswith("_"):
+            issues["ID pattern"].append(rel)
+        if i % 200 == 0:
+            print(f"  hashed {i}/{len(files)} files ({time.time() - t0:.0f} s)")
+
+    # fill sha256 in croissant.json where contentUrl matches a file
+    cj = meta / "croissant.json"
+    filled = 0
+    if cj.exists():
+        try:
+            doc = json.loads(cj.read_text(encoding="utf-8"))
+            by_path = {r["path"]: r["sha256"] for r in rows}
+            for d in doc.get("distribution", []):
+                url = d.get("contentUrl", "")
+                if url in by_path:
+                    d["sha256"] = by_path[url]
+                    filled += 1
+            cj.write_text(json.dumps(doc, indent=2), encoding="utf-8")
+        except Exception as e:  # keep going; report it
+            issues.setdefault("croissant.json", []).append(f"could not update: {e}")
+
+    for r in rows:  # croissant.json may have changed: re-hash it
+        if r["path"] == "01_metadata/croissant.json":
+            r["sha256"] = sha256(cj)
+            r["bytes"] = cj.stat().st_size
+    with open(meta / "MANIFEST.sha256", "w", newline="\n") as f:
+        for r in rows:
+            f.write(f"{r['sha256']}  {r['path']}\n")
+    with open(meta / "manifest.csv", "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["path", "bytes", "sha256", "modified"])
+        w.writeheader()
+        w.writerows(rows)
+
+    total = sum(r["bytes"] for r in rows)
+    n_issues = sum(len(v) for v in issues.values())
+    with open(meta / "qc_report.md", "w", encoding="utf-8") as f:
+        f.write(f"# QC report: {root.name}\n\n")
+        f.write(f"- Files: {len(rows)}\n- Total size: {total / 1e9:.3f} GB\n- Problems found: {n_issues}\n")
+        f.write(f"- croissant.json entries given a checksum: {filled}\n- Generated: {time.strftime('%Y-%m-%d %H:%M')}\n\n")
+        f.write("Fix or move problem files to 99_review/, then run this script again.\n\n")
+        for k, v in issues.items():
+            f.write(f"## {k} ({len(v)})\n")
+            f.write("".join(f"- {x}\n" for x in v[:200]) or "- none\n")
+            if len(v) > 200:
+                f.write(f"- ... and {len(v) - 200} more\n")
+            f.write("\n")
+    print(f"Done: {len(rows)} files, {total / 1e9:.3f} GB, {n_issues} problems.")
+    print(f"Wrote {meta / 'MANIFEST.sha256'}, manifest.csv, qc_report.md")
+
+
+if __name__ == "__main__":
+    main()
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+const MANIFEST_PY=document.getElementById("manifestpy").textContent;
+
+// ---------- page helpers: messages, downloads (works locally and as a published artifact) ----------
+let toastT=null;function notify(m){const t=document.getElementById("toast");t.textContent=m;t.style.display="block";clearTimeout(toastT);toastT=setTimeout(()=>t.style.display="none",7000)}
+function startOver(b){if(b.dataset.armed){S=blank();persist();delete b.dataset.armed;b.textContent="Start over";render();notify("All answers cleared.");return}b.dataset.armed="1";b.textContent="Click again to clear everything";setTimeout(()=>{delete b.dataset.armed;b.textContent="Start over"},4000)}
+let DLNS=null;(async()=>{try{DLNS=window.claude&&window.claude.use?await window.claude.use("downloads"):null}catch(e){DLNS=null}})();
+async function saveBlob(name,blob){if(DLNS){try{await DLNS.save({filename:name,data:blob});notify("Saved "+name+".")}catch(e){notify(e&&e.code==="declined"?"Download cancelled.":"Could not save here. Use Copy instead.")}return}
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+// ---------- dataset presets ----------
+const TYPES = {
+  par:{group:"Sensors and robots",name:"a. PAR sensor calibration",desc:"Light sensors vs a reference sensor under different sky conditions",plant:false,short:"par-sensor-calibration",
+    raw:"02_raw/01_YYYY-MM-DD/  logger_<sensor_id>_YYYYMMDD.csv  reference_<model>_YYYYMMDD.csv",
+    proc:"03_processed/  merged_readings_v1.parquet\n04_results/   calibration_fit_v1.json",
+    formats:"CSV, Parquet, JSON",
+    extras:[
+      {k:"ref_sensor",label:"Reference sensor: model, serial, unit",ph:"LI-COR LI-190R, Q12345, µmol m⁻² s⁻¹",req:1,day:1},
+      {k:"ref_cert",label:"Reference sensor calibration certificate date",type:"date",req:1},
+      {k:"test_sensors",label:"Sensors being calibrated: model and IDs",ph:"BH1750 ×12, IDs S01–S12, raw unit = lux",req:1},
+      {k:"interval",label:"Logging interval",ph:"10 s",req:1,day:1},
+      {k:"timezone",label:"Time zone of timestamps",ph:"UTC-06:00 (CST), or UTC",req:1,day:1},
+      {k:"sky",label:"How sky condition was recorded per session",ph:"clear / partly cloudy / overcast, judged by eye + photo of sky every hour",req:1,day:1},
+      {k:"mounting",label:"Mounting: height, tilt, orientation, diffuser, nearby shading",type:"textarea",req:1,day:1},
+      {k:"cal_model",label:"Calibration model and validation split",ph:"PAR = a·lux + b per sensor; validate leave-one-day-out"}]},
+  lerobot:{group:"Sensors and robots",name:"b. LeRobot training data",desc:"Robot arm episodes picking random objects",plant:false,short:"lerobot-random-objects",
+    raw:"02_raw/lerobot_dataset/   (exactly as LeRobot writes it: meta/, data/, videos/)\n02_raw/robot_calibration/",
+    proc:"04_results/  policy_eval_v1.csv\nsplits/      README.md  (held-out objects)",
+    formats:"LeRobotDataset (Parquet + MP4), CSV",
+    extras:[
+      {k:"robot",label:"Robot type, version, firmware",ph:"SO-101 follower + leader arm",day:1},
+      {k:"calib",label:"Where the robot calibration files are",ph:"02_raw/robot_calibration/",req:1,day:1},
+      {k:"fps",label:"Control frequency (fps)",type:"number",req:1},
+      {k:"joints",label:"Joint names and units (degrees or radians), gripper range",type:"textarea",req:1},
+      {k:"cameras",label:"Cameras: name, model, resolution, fps, mount position",type:"textarea",ph:"wrist: … 640×480 30 fps\ntop: …",req:1,day:1},
+      {k:"objects",label:"Object list file (ID, name, photo, size mm, mass g, material)",ph:"01_metadata/objects.csv",req:1},
+      {k:"task_text",label:"Task instruction text used per episode",ph:"Pick up the object and place it in the bin"},
+      {k:"scene",label:"Scene: table surface, lighting, background, distractors",type:"textarea",day:1},
+      {k:"success",label:"How success/failure was labeled per episode",req:1},
+      {k:"split",label:"Split rule",ph:"leave-object-out: test objects never seen in training",req:1}]},
+  tassel_uav:{group:"Field: drones, rovers, satellites",name:"c. Tassel images, UAV + 3D",desc:"Drone images of maize tassels and 3D reconstruction",plant:true,short:"tassel-uav-3d",
+    raw:"02_raw/01_YYYY-MM-DD/  images/  flight_log/  gcp_rtk/",
+    proc:"03_processed/01_YYYY-MM-DD/  sfm/  3dgs_or_nerf/ (PLY + transforms.json)  tassel_crops/\n04_results/  tassel_traits_v1.csv",
+    formats:"JPG/TIFF with EXIF, PLY, transforms.json, CSV, GeoPackage",
+    extras:[
+      {k:"drone",label:"Drone and camera model, lens",day:1},
+      {k:"alt",label:"Flight altitude (m) and GSD (cm/px)",ph:"12 m, 0.3 cm/px",req:1,day:1},
+      {k:"overlap",label:"Front/side overlap and gimbal angle(s)",ph:"80/80, nadir + 45° oblique",req:1,day:1},
+      {k:"rtk",label:"RTK / GCPs and CRS (EPSG code)",ph:"RTK base AEA-1, EPSG:26915",req:1,day:1},
+      {k:"stage",label:"Growth stage on each date",ph:"VT on 2026-07-22",req:1,day:1},
+      {k:"wind",label:"Wind speed / weather during flight",ph:"2 m/s, clear",day:1},
+      {k:"plotmap",label:"Plot map file (plot → genotype)",ph:"01_metadata/plot_map.gpkg + ids.csv",req:1},
+      {k:"recon",label:"3D reconstruction: software, version, key settings",ph:"COLMAP 3.9 + gsplat 1.4, 30k iterations",req:1},
+      {k:"gt",label:"Tassel ground truth: what, how, on which plants",ph:"tassel length and branch number, ruler, 40 plants"},
+      {k:"linked",label:"Linked datasets (same plants)",ph:"handheld tassel 3D dataset, same day"}]},
+  sorghum:{group:"Field: drones, rovers, satellites",name:"d. Sorghum stalk panorama",desc:"Panoramic photos of sorghum stalks for stalk measurement",plant:true,short:"sorghum-stalk-panorama",
+    raw:"02_raw/01_YYYY-MM-DD/<stalk_id>/  frame_000.jpg …",
+    proc:"03_processed/  panoramas/<stalk_id>_pano_v1.tif  masks/\n04_results/  stalk_traits_v1.csv",
+    formats:"JPG, TIFF, PNG masks, CSV",
+    extras:[
+      {k:"camera",label:"Camera, lens, focal length",day:1},
+      {k:"distance",label:"Distance from camera to stalk",ph:"50 cm",req:1,day:1},
+      {k:"capture",label:"How frames were captured",ph:"rotating rig / slider / walk-by; frames per stalk",req:1,day:1},
+      {k:"scale",label:"Scale reference in the frame (type and size)",ph:"checkerboard 10 mm squares",req:1,day:1},
+      {k:"stitch",label:"Stitching software, version, settings",req:1},
+      {k:"stalkid",label:"Stalk ID → plant → plot → genotype file",ph:"01_metadata/ids.csv",req:1},
+      {k:"stage",label:"Growth stage",day:1},
+      {k:"gt",label:"Ground truth: calipers/tape, units, who, how many stalks",req:1}]},
+  tassel_hand:{group:"Field: drones, rovers, satellites",name:"e. Tassel images, handheld + 3D",desc:"Close-range handheld photos of tassels and 3D reconstruction",plant:true,short:"tassel-handheld-3d",
+    raw:"02_raw/01_YYYY-MM-DD/<tassel_id>/  img_000.jpg …",
+    proc:"03_processed/<tassel_id>/  colmap/  3dgs/  mesh/\n04_results/  tassel_traits_v1.csv",
+    formats:"JPG, PLY, transforms.json, CSV",
+    extras:[
+      {k:"camera",label:"Camera, focal length, aperture / ISO / shutter",day:1},
+      {k:"nimg",label:"Images per tassel and capture path",ph:"~120 images, 3 orbits at different heights",req:1,day:1},
+      {k:"situ",label:"In situ (on plant) or detached?",type:"select",opts:["","in situ","detached"],req:1,day:1},
+      {k:"bg",label:"Background and lighting",ph:"black cloth, overcast",day:1},
+      {k:"scale",label:"Scale marker (type and size)",ph:"ArUco 40 mm",req:1,day:1},
+      {k:"recon",label:"3D reconstruction: software, version, settings",req:1},
+      {k:"gt",label:"Ground truth measurements and method"},
+      {k:"linked",label:"Linked datasets (same plants)",ph:"UAV tassel 3D dataset, same day"}]},
+  hinalea:{group:"Lab and greenhouse",name:"f. Hyperspectral 3D maize ear (Hinalea)",desc:"Turntable hyperspectral scans of maize ears, 3D reconstruction",plant:true,short:"maize-ear-hyperspectral-3d",
+    raw:"02_raw/01_YYYY-MM-DD/E0001/  E0001_view000.hdr/.bil  E0001_view000.json …\n02_raw/01_YYYY-MM-DD/_refs/  white_<time>.hdr/.bil  dark_<time>.hdr/.bil",
+    proc:"03_processed/  reflectance/ (Zarr or ENVI)  pointcloud_spectral/E0001_v1.ply\n04_results/  ear_traits_v1.csv",
+    formats:"ENVI .hdr+.bil, Zarr, PLY, JSON, CSV",
+    extras:[
+      {k:"cam",label:"Camera model and serial",day:1},
+      {k:"wl",label:"Wavelength list file (centers + FWHM), range, number of bands",ph:"01_metadata/wavelengths.csv, 400–1700 nm",req:1},
+      {k:"integ",label:"Integration time, gain, lens, working distance",req:1,day:1},
+      {k:"lamp",label:"Illumination: lamp type, warm-up time",req:1,day:1},
+      {k:"refs",label:"White/dark references: when taken, panel reflectance",ph:"every session start + every 30 min; 99% Spectralon",req:1,day:1},
+      {k:"turn",label:"Turntable step angle and number of views",ph:"22.5°, 16 views",req:1,day:1},
+      {k:"earid",label:"Ear ID → plot → genotype file; harvest date; moisture",req:1},
+      {k:"proc3d",label:"Processing: radiometric calibration, 3D registration, software + commit",req:1},
+      {k:"gt",label:"Ground truth: kernel rows, length, composition, method"}]},
+  uav_lidar:{group:"Field: drones, rovers, satellites",name:"UAV LiDAR + RGB field season",desc:"Repeated drone LiDAR and RGB flights over breeding plots; plant height, canopy volume",plant:true,short:"uav-lidar-rgb",
+    raw:"02_raw/01_YYYY-MM-DD/  lidar/  rgb/  flight_log/  gcp_rtk/  calib/",
+    proc:"03_processed/01_YYYY-MM-DD/  lidar_merged_v1.laz  ortho_v1.tif  dsm_v1.tif\n04_results/  plot_traits_v1.parquet",
+    formats:"LAS/LAZ, GeoTIFF, JPG with EXIF, GeoPackage, Parquet",
+    extras:[{k:"alt",label:"Flight altitude (m), speed, and LiDAR point density (pts/m²)",ph:"25 m AGL, 5 m/s, ~2200 pts/m²",req:1,day:1},
+      {k:"scan",label:"LiDAR scan settings: return mode, pulse rate, scan pattern, nadir/oblique passes",ph:"single return, 240 kHz, non-repetitive; 1 nadir + 4 oblique",req:1,day:1},
+      {k:"overlap",label:"RGB overlap and GSD",ph:"80/80, 0.5 cm/px",req:1,day:1},
+      {k:"rtk",label:"RTK / GCPs and CRS (EPSG)",ph:"EPSG:26915; 5 GCPs",req:1,day:1},
+      {k:"stage",label:"Growth stage on each flight date",req:1,day:1},
+      {k:"plotmap",label:"Plot map (plot → genotype) file",ph:"01_metadata/plot_map.gpkg",req:1},
+      {k:"proc",label:"Processing software + settings (point cloud, ground filter, ortho)",ph:"DJI Terra 4.x; PDAL CSF 0.5 m; Metashape 2.1",req:1},
+      {k:"gt",label:"Ground truth (ruler heights, harvest)",ph:"R5 canopy height, 2 plants/plot, ruler"}]},
+  uav_ms:{group:"Field: drones, rovers, satellites",name:"UAV multispectral / RGB imagery",desc:"Drone orthomosaics for vegetation indices, stand count, stress, maturity",plant:true,short:"uav-multispectral",
+    raw:"02_raw/01_YYYY-MM-DD/  images/  panel/  flight_log/",
+    proc:"03_processed/01_YYYY-MM-DD/  reflectance_ortho_v1.tif  index_ndvi_v1.tif\n04_results/  plot_indices_v1.csv",
+    formats:"TIFF (per band), GeoTIFF, CSV, GeoPackage",
+    extras:[{k:"bands",label:"Bands: center wavelengths and widths",ph:"475/560/668/717/842 nm",req:1},
+      {k:"alt",label:"Altitude, GSD, overlap",ph:"45 m, 3 cm/px, 80/80",req:1,day:1},
+      {k:"panel",label:"Reflectance panel: ID, when captured (before/after flight)",req:1,day:1},
+      {k:"dls",label:"Downwelling light sensor used? Sky condition",ph:"DLS2 on; clear",day:1},
+      {k:"rtk",label:"GCPs / RTK and CRS (EPSG)",req:1,day:1},
+      {k:"proc",label:"Orthomosaic software, radiometric calibration, settings",req:1},
+      {k:"plotmap",label:"Plot map (plot → genotype)",req:1}]},
+  satellite:{group:"Field: drones, rovers, satellites",name:"Satellite imagery (plot or field level)",desc:"Pléiades Neo, PlanetScope, Sentinel-2 or similar; plot traits, stress, yield, protein/oil",plant:true,short:"satellite-imagery",
+    raw:"02_raw/01_YYYY-MM-DD/  scene_<id>/  (as delivered; do not rename inside)",
+    proc:"03_processed/  plot_chips_v1/  pansharpened_v1.tif\n04_results/  plot_features_v1.parquet",
+    formats:"GeoTIFF / COG, JSON scene metadata, Parquet",
+    extras:[{k:"provider",label:"Provider, product level, scene IDs",ph:"Airbus Pléiades Neo, ortho L3, scene IDs in scenes.csv",req:1},
+      {k:"license_sat",label:"Imagery license (can it be redistributed?)",ph:"licensed; derived plot features only can be shared",req:1},
+      {k:"res",label:"Spatial resolution and bands",ph:"30 cm pan, 1.2 m MS, 6 bands",req:1},
+      {k:"dates",label:"Acquisition dates/times, cloud cover, view angle",req:1},
+      {k:"atm",label:"Atmospheric correction and pan-sharpening method",req:1},
+      {k:"crs",label:"CRS (EPSG) and plot boundary file",ph:"EPSG:32615; fishnet shapefile/GeoPackage",req:1},
+      {k:"gt",label:"Ground truth joined to plots (yield, protein, oil)"}]},
+  rover:{group:"Field: drones, rovers, satellites",name:"Ground rover video / images for 3D",desc:"Under-canopy or row-side rover video for SfM, NeRF, 3DGS, VGGT reconstruction",plant:true,short:"rover-3d",
+    raw:"02_raw/01_YYYY-MM-DD/<row_id>/  video.mp4  imu.csv  gnss.csv",
+    proc:"03_processed/<row_id>/  frames/  colmap/  3dgs/ (PLY + transforms.json)\n04_results/  plant_traits_v1.csv",
+    formats:"MP4, PNG/JPG frames, PLY, transforms.json, CSV",
+    extras:[{k:"cams",label:"Cameras: model, resolution, fps, height, angle, baseline (stereo)",req:1,day:1},
+      {k:"speed",label:"Rover speed and path (row order, direction)",req:1,day:1},
+      {k:"imu",label:"IMU / GNSS / wheel odometry logged? Time sync",day:1},
+      {k:"light",label:"Lighting and wind",day:1},
+      {k:"frames",label:"Frame extraction rule",ph:"every 5th frame; blur filter",req:1},
+      {k:"recon",label:"Reconstruction method, version, settings",req:1},
+      {k:"rowmap",label:"Row/plot map (row → genotype)",req:1}]},
+  manual:{group:"Field: drones, rovers, satellites",name:"Field manual measurements / harvest",desc:"Plant height, stand count, flowering dates, yield, grain moisture from field books or tablets",plant:true,short:"field-measurements",
+    raw:"02_raw/01_YYYY-MM-DD/  fieldbook_scan.pdf  tablet_export.csv",
+    proc:"03_processed/  traits_clean_v1.csv\n04_results/  blues_v1.csv",
+    formats:"CSV, PDF scans",
+    extras:[{k:"design",label:"Experimental design (reps, blocks, checks)",req:1},
+      {k:"tools",label:"Tools and how each trait was measured",ph:"ruler to tassel tip; combine yield monitor",req:1,day:1},
+      {k:"who",label:"Who recorded, on what (paper, tablet app)",day:1},
+      {k:"cleaning",label:"Cleaning rules (outliers, missing, units)",req:1},
+      {k:"stats",label:"Model for BLUEs/BLUPs (if any)",ph:"lme4: trait ~ genotype + (1|rep)"}]},
+  turntable:{group:"Lab and greenhouse",name:"Turntable 3D scans of potted plants",desc:"RGB multi-view scans of plants (e.g. soybean V-stages) on a turntable or scanning station; SfM / NeRF / 3DGS",plant:true,short:"turntable-3d",
+    raw:"02_raw/01_YYYY-MM-DD/<plant_id>/  view_000.jpg …  turntable_log.csv",
+    proc:"03_processed/<plant_id>/  colmap/  3dgs/  pointcloud_v1.ply\n04_results/  plant_traits_v1.csv",
+    formats:"JPG/PNG, PLY, transforms.json, CSV",
+    extras:[{k:"station",label:"Scanning station / turntable model and setup",req:1,day:1},
+      {k:"views",label:"Views per plant (angles, heights)",ph:"72 views: 3 heights × 24 angles",req:1,day:1},
+      {k:"light",label:"Lighting and background",ph:"LED panels, black backdrop",req:1,day:1},
+      {k:"scale",label:"Scale / color reference",ph:"ArUco 40 mm + color checker",req:1,day:1},
+      {k:"stage",label:"Growth stage, pot size, days after planting",req:1,day:1},
+      {k:"recon",label:"Reconstruction method, version, settings",req:1},
+      {k:"gt",label:"Ground truth (manual height, leaf area, destructive)"}]},
+  roots:{group:"Lab and greenhouse",name:"Root imaging / root architecture",desc:"Root images or scans (rhizotron, washed roots, CT) and root system traits",plant:true,short:"root-imaging",
+    raw:"02_raw/01_YYYY-MM-DD/<plant_id>/  image.tif",
+    proc:"03_processed/  masks_v1/  skeletons_v1/\n04_results/  root_traits_v1.csv",
+    formats:"TIFF/PNG, CSV",
+    extras:[{k:"system",label:"Growth system (rhizotron, pouch, soil core, pot) and age",req:1,day:1},
+      {k:"imaging",label:"Imaging device, resolution (px/mm), lighting",req:1,day:1},
+      {k:"wash",label:"Washing / staining / preparation",day:1},
+      {k:"scale",label:"Scale reference",req:1,day:1},
+      {k:"analysis",label:"Analysis software (RhizoVision, SmartRoot…), version, settings",req:1}]},
+  impedance:{group:"Lab and greenhouse",name:"Lab instrument: impedance spectroscopy (kernels)",desc:"Multi-frequency impedance of single maize kernels with reference oil/composition",plant:true,short:"kernel-impedance",
+    raw:"02_raw/01_YYYY-MM-DD/  <kernel_id>_sweep.csv",
+    proc:"03_processed/  spectra_v1.parquet\n04_results/  oil_predictions_v1.csv",
+    formats:"CSV, Parquet",
+    extras:[{k:"analyzer",label:"Analyzer model, frequency range, points, amplitude",ph:"10 Hz–1 MHz, 60 log points, 100 mV",req:1,day:1},
+      {k:"fixture",label:"Electrode / fixture geometry and contact",req:1,day:1},
+      {k:"cal",label:"Open/short/load calibration done when",req:1,day:1},
+      {k:"cond",label:"Kernel moisture, temperature, humidity",req:1,day:1},
+      {k:"ref",label:"Reference method for oil (NMR, NIR) and units",req:1},
+      {k:"kernelid",label:"Kernel ID → ear → genotype file",req:1}]},
+  genotypes:{group:"Genomics and models",name:"Genotype / SNP data",desc:"SNP calls, VCF, HapMap for a breeding panel; often restricted",plant:true,short:"genotypes",
+    raw:"02_raw/  provider_delivery/  (as delivered)",
+    proc:"03_processed/  panel_filtered_v1.vcf.gz  kinship_v1.csv\n04_results/  gwas_or_gblup_v1/",
+    formats:"VCF (.vcf.gz), HapMap, CSV",
+    extras:[{k:"platform",label:"Genotyping platform / provider",ph:"GBS, SNP array, WGS",req:1},
+      {k:"ref",label:"Reference genome and version",ph:"B73 RefGen_v5",req:1},
+      {k:"filter",label:"Filtering (MAF, missingness, imputation tool)",req:1},
+      {k:"samples",label:"Sample ID → genotype name → GRIN/G2F ID file",req:1},
+      {k:"agreement",label:"Data-use agreement / NDA terms",ph:"partner NDA: share metadata only"}]},
+  apsim:{group:"Genomics and models",name:"Crop model runs (APSIM)",desc:"Simulated crop states and yields; calibration and scenarios",plant:false,short:"crop-model-runs",
+    raw:"02_raw/  inputs/ (weather, soil, management)",
+    proc:"03_processed/  apsimx_files/  runs/\n04_results/  outputs_v1.parquet",
+    formats:".apsimx, CSV, Parquet",
+    extras:[{k:"model",label:"Model and version",ph:"APSIM Next Gen 2025.x",req:1},
+      {k:"weather",label:"Weather source and station",ph:"Iowa Mesonet station AMES",req:1},
+      {k:"soil",label:"Soil profile source",ph:"SSURGO map unit; measured profile",req:1},
+      {k:"calib",label:"Calibration: parameters, data used, fit metrics",req:1},
+      {k:"scen",label:"Scenarios and management",req:1}]},
+  synthetic:{group:"Genomics and models",name:"Synthetic 3D plants / simulated images",desc:"Procedural plant models (maize, soybean, sorghum, saffron) and rendered images or point clouds",plant:false,short:"synthetic-3d",
+    raw:"02_raw/  generator_configs/  (parameters + random seeds)",
+    proc:"03_processed/  meshes/ (OBJ/PLY)  renders/  pointclouds/\n04_results/  labels_v1.csv",
+    formats:"OBJ, PLY, STL, PNG, JSON configs",
+    extras:[{k:"generator",label:"Generator tool and version / commit",ph:"Maize Plot Builder @ a1b2c3d",req:1},
+      {k:"params",label:"Parameter ranges and sampling",req:1},
+      {k:"seeds",label:"Random seeds saved where",req:1},
+      {k:"renderer",label:"Renderer / camera model / lighting",req:1},
+      {k:"real",label:"Real data it imitates (and how it was matched)"}]},
+  other:{group:"Other",name:"Other dataset",desc:"Anything else; fill the general questions",plant:true,short:"my-dataset",
+    raw:"02_raw/01_YYYY-MM-DD/ …",proc:"03_processed/ …\n04_results/ …",formats:"",extras:[]}
+};
+
+// ---------- steps ----------
+const STEPS = [
+ {id:"type",title:"Pick your dataset"},
+ {id:"about",title:"About the dataset",help:"Who made it and who to ask. This goes into every file.",fields:[
+   {k:"title",label:"Title",req:1,ph:"Maize tassel UAV images and 3D reconstructions, Ames 2026"},
+   {k:"description",label:"Short description (3–4 sentences: what, where, when, how many)",type:"textarea",req:1},
+   {row:[{k:"steward_name",label:"Steward (you)",req:1},{k:"steward_email",label:"Email",type:"email",req:1},{k:"steward_orcid",label:"ORCID",ph:"0000-0000-0000-0000",hint:"Free at orcid.org"}]},
+   {row:[{k:"owner",label:"Owner / PI",req:1},{k:"institution",label:"Institution",ph:"Iowa State University"}]},
+   {row:[{k:"funder",label:"Funding agency",ph:"NSF / USDA-NIFA"},{k:"award",label:"Award number"}]},
+   {k:"keywords",label:"Keywords (comma separated)",ph:"maize, tassel, 3D reconstruction, UAV, plant phenotyping",hint:"Used by every portal. For Ag Data Commons, prefer NAL Thesaurus terms (agclass.nal.usda.gov)."}]},
+ {id:"when",title:"When and where",help:"Dates use YYYY-MM-DD. List every capture session.",fields:[
+   {row:[{k:"start",label:"Start date",type:"date",req:1,day:1},{k:"end",label:"End date",type:"date",req:1,day:1}]},
+   {k:"sessions",label:"Session dates (one per line)",type:"textarea",ph:"2026-07-22\n2026-07-29",req:1,day:1,hint:"Each becomes a folder: 02_raw/01_2026-07-22/"},
+   {row:[{k:"site",label:"Site name or lab room",req:1,ph:"AEA field / Research Park 7550"},{k:"site_code",label:"Short site code",ph:"AEA or LAB",req:1}]},
+   {row:[{k:"lat",label:"Latitude",type:"number",ph:"42.0"},{k:"lon",label:"Longitude",type:"number",ph:"-93.6"},{k:"country",label:"Country",ph:"USA"}]}]},
+ {id:"what",title:"What was measured",help:"Devices, protocol and the naming scheme. Most of this must be written down on the day.",fields:[
+   {k:"species",label:"Species (or 'none')",ph:"Zea mays (NCBITaxon:4577)",req:1},
+   {k:"genotypes",label:"Genotypes / lines and where the list lives",ph:"40 hybrids, list in 01_metadata/ids.csv"},
+   {k:"id_scheme",label:"ID / naming scheme",req:1,day:1,ph:"YYYY_SITE_Rrow_Ccol_tNN, e.g. 2026_AEA_R03_C12_t01"},
+   {k:"obs_unit",label:"What one record is (observation unit)",type:"select",opts:["","plot","plant","organ (tassel, ear, stalk)","sample","episode","sensor reading","other"],req:1}]},
+ {id:"sensors",title:"Sensors and settings",help:"One card per sensor or instrument (camera, LiDAR, light sensor, robot arm, lamp, turntable, reference panel). Click <b>Add suggested sensors</b> to start from the usual set for your dataset type. Settings must be recorded on the day.",fields:[{k:"sensors",type:"sensors",req:1}]},
+ {id:"protocol",title:"Data collection protocol",help:"Write it so a new student could repeat the collection without asking you. Short numbered steps are best.",fields:[
+   {k:"protocol_objective",label:"Objective: what the collection is for",req:1,ph:"Measure tassel length and branch number from 3D reconstructions"},
+   {k:"protocol_pre",label:"Before capture: setup and checklist",type:"textarea",req:1,day:1,ph:"1. Charge batteries, format cards\n2. Warm up lamp 15 min\n3. Place scale marker / calibration panel"},
+   {k:"protocol",label:"Procedure: step by step, with key settings",type:"textarea",req:1,day:1,ph:"1. Capture white/dark reference\n2. Scan ear at 16 views, 22.5° steps\n3. ..."},
+   {k:"protocol_conditions",label:"Conditions recorded each session",type:"textarea",day:1,ph:"time, sky/lighting, wind, temperature, growth stage, operator"},
+   {k:"protocol_qa",label:"Quality checks during capture",type:"textarea",day:1,ph:"check focus and exposure on first image; repeat if blurry; count files before leaving"},
+   {k:"protocol_post",label:"After capture: offload, backup, naming",type:"textarea",req:1,ph:"copy to Box the same day; rename with ID scheme; second copy on lab drive; fill capture_log.csv"},
+   {k:"protocol_doc",label:"Link to a full written protocol (optional)",ph:"protocols.io link or 00_docs/protocol.pdf"}]},
+ {id:"extras",title:"Dataset-specific facts"},
+ {id:"vars",title:"Variables (data dictionary)",help:"One row per column in your results table. Units are required. Look up trait IDs at cropontology.org or ebi.ac.uk/ols4.",fields:[{k:"variables",type:"vars"}]},
+ {id:"proc",title:"Processing and quality",fields:[
+   {k:"steps",label:"Processing steps",type:"proc",req:1},
+   {k:"ground_truth",label:"Ground truth / reference measurements and method",type:"textarea"},
+   {k:"qc",label:"Quality checks done and known problems",type:"textarea",ph:"duplicates removed, 3 blurry sessions flagged in 99_review/"},
+   {k:"formats",label:"File formats",req:1}]},
+ {id:"share",title:"Sharing and responsible use",help:"These feed the license, the access tier and the Responsible-AI fields that NeurIPS requires in Croissant.",fields:[
+   {row:[{k:"license",label:"License (data)",type:"select",opts:["CC-BY-4.0","CC0-1.0","restricted (see access)"],req:1},{k:"tier",label:"Access tier",type:"select",opts:["0 open","1 embargo","2 restricted"],req:1},{k:"embargo",label:"Embargo until",type:"date"}]},
+   {k:"access_note",label:"Access rule (if tier 1 or 2)",ph:"genotypes under partner NDA; request from steward"},
+   {k:"limitations",label:"Known limitations",type:"textarea",req:1},
+   {k:"intended_use",label:"Intended use (and what it is not suited for)",type:"textarea",req:1},
+   {k:"biases",label:"Possible biases (genotypes, sites, seasons, weather covered)",type:"textarea"},
+   {k:"sensitive",label:"Sensitive information removed?",ph:"none present / GPS stripped from EXIF / faces blurred",req:1}]},
+ {id:"miappe",title:"Full MIAPPE (plant data)",help:"Optional for teaching, needed for a phenotyping repository. Skip this step for PAR calibration and robot data.",fields:[
+   {row:[{k:"facility",label:"Growth facility",type:"select",opts:["","field","greenhouse","growth chamber","lab (post-harvest material)"]},{k:"design_type",label:"Type of experimental design",ph:"randomized complete block"}]},
+   {k:"design_map",label:"Map of experimental design (file)",ph:"01_metadata/plot_map.gpkg"},
+   {k:"cultural",label:"Cultural practices",type:"textarea",ph:"planting density 80k/ha, row spacing 76 cm, N 180 kg/ha"},
+   {k:"seed_source",label:"Biological material source (seed lot, GRIN/G2F IDs)",ph:"GRIN PI numbers in ids.csv"},
+   {k:"env",label:"Environment parameters",type:"env"},
+   {k:"factors",label:"Experimental factors (what you varied on purpose)",type:"factors"},
+   {k:"events",label:"Events (planting, fertilizing, harvest, each flight or scan day)",type:"events"}]},
+ {id:"deposit",title:"Deposit and DOI",help:"Fill this after you upload. Every file gets the DOI and repository automatically. Reserve the DOI first if the repository allows it (Zenodo and Dataverse do).",fields:[
+   {row:[{k:"repo",label:"Repository",type:"select",opts:["","ISU DataShare","Zenodo","Harvard Dataverse","Hugging Face","Ag Data Commons","CyVerse Data Commons","other"]},{k:"doi",label:"DOI",ph:"10.5281/zenodo.1234567"}]},
+   {row:[{k:"landing",label:"Landing page URL"},{k:"pub_date",label:"Publication date",type:"date"}]},
+   {row:[{k:"code_url",label:"Code repository URL",ph:"https://github.com/..."},{k:"code_commit",label:"Code commit / release",ph:"a1b2c3d or v1.0"}]},
+   {row:[{k:"paper",label:"Related paper (DOI or title)"},{k:"venue",label:"Target venue",type:"select",opts:["","NeurIPS (Evaluations & Datasets)","CVPR / ICCV / ECCV / WACV","Scientific Data","Journal (other)","IMECE / ASABE / NAPPN","no paper yet"]}]},
+   {k:"agdc",label:"USDA-funded? Ag Data Commons record URL",ph:"leave blank if not USDA"},
+   {row:[{k:"hf_task",label:"Hugging Face task category",type:"select",opts:["","image-classification","object-detection","image-segmentation","depth-estimation","image-to-3d","robotics","tabular-regression","tabular-classification","time-series-forecasting","feature-extraction","other"]},{k:"size_cat",label:"Number of records",type:"select",opts:["","n<1K","1K<n<10K","10K<n<100K","100K<n<1M","1M<n<10M","10M<n<100M"]},{k:"hf_repo",label:"Hugging Face / Kaggle ID",ph:"isu-trac/maize-tassel-uav-3d"}]}]},
+ {id:"export",title:"Review and download"},
+ {id:"finish",title:"Finish checklist"}
+];
+
+// ---------- state ----------
+function blank(){return {type:"",f:{license:"CC-BY-4.0",tier:"0 open",institution:"Iowa State University",country:"USA",devices:[{type:"",model:"",serial:"",firmware:"",settings:""}],variables:[{column:"",description:"",unit:"",ontology_id:"",value_type:"observed",method:""}],steps:[{step:"",software:"",version:"",git_commit:""}],sensors:[],env:[{parameter:"",value:""}],factors:[{factor:"",description:"",values:""}],events:[{event:"",date:"",description:""}]},x:{},chk:{},cur:0,tab:"study_card.yaml"}}
+let S; try{S=JSON.parse(localStorage.getItem("studycard_v1"))||blank()}catch(e){S=blank()}
+function migrate(){const b=blank();S.chk=S.chk||{};S.x=S.x||{};["env","factors","events","steps","variables","sensors"].forEach(k=>{if(!Array.isArray(S.f[k]))S.f[k]=b.f[k]});if(!S.f.sensors.length&&Array.isArray(S.f.devices))S.f.devices.filter(d=>d.model).forEach(d=>S.f.sensors.push(Object.assign(blankSensor(),{role:d.type,model:d.model,serial:d.serial,firmware:d.firmware,other:d.settings})))}migrate();
+function persist(){try{localStorage.setItem("studycard_v1",JSON.stringify(S))}catch(e){}}
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const T=()=>TYPES[S.type]||TYPES.other;
+
+// ---------- completeness ----------
+function flatFields(st){const out=[];(st.fields||[]).forEach(f=>f.row?out.push(...f.row):out.push(f));return out}
+function filled(f,src){const v=src[f.k];if(f.type==="sensors")return v&&v.some(d=>d.model&&d.role);if(f.type==="proc")return v&&v.some(d=>d.step);if(f.type==="vars")return v&&v.some(d=>d.column&&d.unit);return v!==undefined&&String(v).trim()!==""}
+function stepStatus(i){const st=STEPS[i];
+  if(st.id==="type")return S.type?[1,1]:[0,1];
+  if(st.id==="extras"){const ex=T().extras.filter(e=>e.req);return [ex.filter(e=>filled(e,S.x)).length,ex.length]}
+  if(st.id==="vars")return [filled({k:"variables",type:"vars"},S.f)?1:0,1];
+  if(st.id==="export")return null;
+  if(st.id==="finish"){const it=checkItems();return [it.filter(i=>S.chk[i.id]).length,it.length]}
+  if(st.id==="miappe"&&!T().plant)return null;
+  const fs=flatFields(st).filter(f=>f.req);return [fs.filter(f=>filled(f,S.f)).length,fs.length]}
+function missingList(){const m=[];STEPS.forEach((st,i)=>{
+  if(st.id==="type"&&!S.type)m.push([i,"Dataset type"]);
+  if(st.id==="extras")T().extras.filter(e=>e.req&&!filled(e,S.x)).forEach(e=>m.push([i,e.label,e.day]));
+  if(st.id==="vars"&&!filled({k:"variables",type:"vars"},S.f))m.push([i,"At least one variable with a unit"]);
+  if(st.fields&&st.id!=="vars"&&!(st.id==="miappe"&&!T().plant))flatFields(st).filter(f=>f.req&&!filled(f,S.f)).forEach(f=>m.push([i,f.label,f.day]))});return m}
+
+// ---------- rendering ----------
+function render(){
+  const ol=document.getElementById("steps");let tot=0,got=0;
+  ol.innerHTML=STEPS.map((st,i)=>{const s=stepStatus(i);if(s&&st.id!=="finish"){got+=s[0];tot+=s[1]}
+    const b=s?`<span class="badge ${s[0]===s[1]?"ok":""}">${s[0]===s[1]?"✓":s[0]+"/"+s[1]}</span>`:"";
+    return `<li class="${i===S.cur?"active":""}" onclick="go(${i})">${i+1}. ${st.title}${b}</li>`}).join("");
+  const p=tot?Math.round(100*got/tot):0;document.getElementById("pct").textContent=p+"%";document.getElementById("barfill").style.width=p+"%";
+  const st=STEPS[S.cur];let h=`<h2>${S.cur+1}. ${st.title}</h2>`;
+  if(st.help)h+=`<div class="help">${st.help}</div>`;
+  if(st.id==="type")h+=typeStep();
+  else if(st.id==="extras")h+=extrasStep();
+  else if(st.id==="export")h+=exportStep();
+  else if(st.id==="finish")h+=finishStep();
+  else if(st.id==="miappe"&&!T().plant)h+=`<div class="oneline"><b>Not needed:</b> MIAPPE is for plant experiments. Your dataset type (${esc(T().name)}) skips this step.</div>`;
+  else h+=(st.fields||[]).map(f=>f.row?`<div class="${f.row.length===3?"row3":"row"}">${f.row.map(x=>fieldHTML(x,"f")).join("")}</div>`:fieldHTML(f,"f")).join("");
+  h+=`<div class="footer"><button ${S.cur===0?"disabled":""} onclick="go(${S.cur-1})">← Back</button>${S.cur<STEPS.length-1?`<button class="primary" onclick="go(${S.cur+1})">Next →</button>`:""}</div>`;
+  document.getElementById("main").innerHTML=h;
+}
+function go(i){S.cur=Math.max(0,Math.min(STEPS.length-1,i));persist();render();window.scrollTo(0,0)}
+function lab(f){return `<label>${esc(f.label)}${f.req?' <span class="req">*</span>':""}${f.day?'<span class="day">ON THE DAY</span>':""}</label>`}
+function fieldHTML(f,src){
+  const store=src==="x"?S.x:S.f,v=store[f.k]??"";
+  if(f.type==="devices")return `<div class="field">${lab(f)}${rowsTable("devices",["type","model","serial","firmware","settings"],["e.g. LiDAR","model","serial","version","altitude, exposure…"])}</div>`;
+  if(f.type==="proc")return `<div class="field">${lab(f)}${rowsTable("steps",["step","software","version","git_commit"],["e.g. merge point clouds","PDAL","2.7","a1b2c3d"])}</div>`;
+  if(f.type==="vars")return varsTable();
+  if(f.type==="sensors")return sensorsEditor();
+  if(f.type==="env")return `<div class="field">${lab(f)}${rowsTable("env",["parameter","value"],["soil type / irrigation / temperature","silty clay loam / rainfed / 18–30 °C"])}</div>`;
+  if(f.type==="factors")return `<div class="field">${lab(f)}${rowsTable("factors",["factor","description","values"],["nitrogen rate","kg N/ha applied pre-plant","0, 90, 180"])}</div>`;
+  if(f.type==="events")return `<div class="field">${lab(f)}${rowsTable("events",["event","date","description"],["planting / flight / scan","YYYY-MM-DD","details"])}</div>`;
+  const on=`oninput="setv('${src}','${f.k}',this.value)"`;
+  let inp;
+  if(f.type==="textarea")inp=`<textarea ${on} placeholder="${esc(f.ph||"")}">${esc(v)}</textarea>`;
+  else if(f.type==="select")inp=`<select onchange="setv('${src}','${f.k}',this.value)">${f.opts.map(o=>`<option ${o===v?"selected":""}>${esc(o)}</option>`).join("")}</select>`;
+  else inp=`<input type="${f.type||"text"}" value="${esc(v)}" ${on} placeholder="${esc(f.ph||"")}">`;
+  return `<div class="field">${lab(f)}${inp}${f.hint?`<div class="hint">${esc(f.hint)}</div>`:""}</div>`}
+function setv(src,k,val){(src==="x"?S.x:S.f)[k]=val;persist();refreshNav()}
+function refreshNav(){const cur=S.cur;const main=document.getElementById("main");const ol=document.getElementById("steps");let tot=0,got=0;
+  ol.innerHTML=STEPS.map((st,i)=>{const s=stepStatus(i);if(s&&st.id!=="finish"){got+=s[0];tot+=s[1]}const b=s?`<span class="badge ${s[0]===s[1]?"ok":""}">${s[0]===s[1]?"✓":s[0]+"/"+s[1]}</span>`:"";return `<li class="${i===cur?"active":""}" onclick="go(${i})">${i+1}. ${st.title}${b}</li>`}).join("");
+  const p=tot?Math.round(100*got/tot):0;document.getElementById("pct").textContent=p+"%";document.getElementById("barfill").style.width=p+"%"}
+function rowsTable(key,cols,phs){const rows=S.f[key];
+  return `<table class="grid"><tr>${cols.map(c=>`<th>${c}</th>`).join("")}<th></th></tr>${rows.map((r,i)=>`<tr>${cols.map((c,j)=>`<td><input type="text" value="${esc(r[c])}" placeholder="${esc(phs[j])}" oninput="setRow('${key}',${i},'${c}',this.value)"></td>`).join("")}<td><button class="small" onclick="delRow('${key}',${i})">✕</button></td></tr>`).join("")}</table><button class="small" style="margin-top:6px" onclick="addRow('${key}')">+ Add row</button>`}
+function varsTable(){const cols=["column","description","unit","ontology_id","value_type","method"];const rows=S.f.variables;
+  return `<table class="grid"><tr><th>column *</th><th>description</th><th>unit *</th><th>ontology_id</th><th>value_type</th><th>method</th><th></th></tr>${rows.map((r,i)=>`<tr>${cols.map(c=>c==="value_type"?`<td><select onchange="setRow('variables',${i},'value_type',this.value)">${["observed","derived","simulated"].map(o=>`<option ${r.value_type===o?"selected":""}>${o}</option>`).join("")}</select></td>`:`<td><input type="text" value="${esc(r[c])}" placeholder="${{column:"PH_cm",description:"plant height",unit:"cm",ontology_id:"CO_322:…",method:"99th pct LiDAR height"}[c]||""}" oninput="setRow('variables',${i},'${c}',this.value)"></td>`).join("")}<td><button class="small" onclick="delRow('variables',${i})">✕</button></td></tr>`).join("")}</table><button class="small" style="margin-top:6px" onclick="addRow('variables')">+ Add variable</button>
+  <div class="help" style="margin-top:14px">Find trait IDs: <a href="https://cropontology.org" target="_blank">cropontology.org</a> (maize CO_322, soybean CO_336, sorghum CO_324) · units and other terms: <a href="https://www.ebi.ac.uk/ols4" target="_blank">ebi.ac.uk/ols4</a> (unit ontology UO).<br><b>value_type:</b> observed = measured by a sensor or person · derived = computed by your code (give the method) · simulated = output of a model. Use "-" as unit for IDs and text columns.</div>`}
+function setRow(k,i,c,v){S.f[k][i][c]=v;persist();refreshNav()}
+function addRow(k){const t={env:{parameter:"",value:""},factors:{factor:"",description:"",values:""},events:{event:"",date:"",description:""},devices:{type:"",model:"",serial:"",firmware:"",settings:""},steps:{step:"",software:"",version:"",git_commit:""},variables:{column:"",description:"",unit:"",ontology_id:"",value_type:"observed",method:""}}[k];S.f[k].push({...t});persist();render()}
+function delRow(k,i){if(S.f[k].length>1)S.f[k].splice(i,1);persist();render()}
+
+
+// ---------- sensors ----------
+const SF=[["role","What it does","e.g. RGB camera on drone",1],["model","Manufacturer and model","",1],["serial","Serial number","",0],["firmware","Firmware / software version","",0],
+ ["platform","Platform / mount","drone, tripod, handheld, turntable, pole, robot wrist",1],["position","Position: height, distance, angle, orientation","12 m AGL, nadir",0],
+ ["spectral","Spectral bands / wavelengths","RGB; or 400–1000 nm, 300 bands",0],["resolution","Resolution / image size / point density","8192×5460 px; 0.3 cm/px",0],
+ ["lens","Lens, focal length, field of view","35 mm, FOV 63°",0],["rate","Sampling: frame rate / logging interval","30 fps; 1 Hz; 10 s",0],
+ ["exposure","Exposure / integration time","1/2000 s; 12 ms",0],["gain","Gain / ISO / aperture","ISO 200, f/5.6",0],["other","Other settings","white balance, focus mode, overlap, scan pattern",0],
+ ["calib_method","Calibration method","reflectance panel each flight; factory; checkerboard",1],["calib_date","Last calibration date","YYYY-MM-DD",0],["calib_file","Calibration file(s) path","02_raw/01_.../calib/",0],
+ ["timesync","Time sync","GPS time / NTP / manual (offset noted)",0]];
+function blankSensor(){const o={};SF.forEach(x=>o[x[0]]="");return o}
+const PRESETS={
+ par:[{role:"Reference PAR quantum sensor",platform:"tripod / pole",calib_method:"manufacturer certificate"},{role:"Low-cost light sensors (being calibrated)",model:"BH1750",platform:"pole array",rate:"",calib_method:"regression to reference sensor"},{role:"Data logger",platform:"pole",timesync:"GPS / NTP"}],
+ lerobot:[{role:"Follower arm",model:"SO-101",platform:"table mount",calib_method:"LeRobot calibration routine"},{role:"Leader arm (teleoperation)",model:"SO-101 leader",platform:"table mount",calib_method:"LeRobot calibration routine"},{role:"Wrist camera",platform:"robot wrist"},{role:"Top / scene camera",platform:"tripod above table"}],
+ tassel_uav:[{role:"Drone / flight platform",platform:"UAV",calib_method:"compass/IMU calibration before flight"},{role:"RGB camera",platform:"UAV gimbal",calib_method:"none / exposure test"},{role:"RTK GNSS base + rover",platform:"ground base",timesync:"GPS time"}],
+ sorghum:[{role:"Camera",platform:"rig / slider / handheld"},{role:"Scale target (checkerboard or ruler)",platform:"in frame next to stalk",calib_method:"known square size"},{role:"Calipers / tape (ground truth)",calib_method:"zero check"}],
+ tassel_hand:[{role:"Camera",platform:"handheld"},{role:"Scale marker (ArUco / checkerboard)",platform:"next to tassel",calib_method:"printed size checked with ruler"}],
+ hinalea:[{role:"Hyperspectral camera",platform:"fixed above turntable",calib_method:"white + dark reference each session"},{role:"Illumination lamp",platform:"fixed",other:"warm-up: <minutes>; lamp type: <type, watts>"},{role:"Turntable",platform:"bench",other:"step angle: <degrees>; views: <n>"},{role:"White reference panel",calib_method:"certified reflectance"}],
+ uav_lidar:[{role:"Drone / flight platform",platform:"UAV"},{role:"LiDAR scanner",platform:"UAV gimbal"},{role:"RGB camera",platform:"UAV"},{role:"RTK GNSS base",platform:"ground",timesync:"GPS time"}],
+ uav_ms:[{role:"Drone / flight platform",platform:"UAV"},{role:"Multispectral camera",platform:"UAV"},{role:"Downwelling light sensor",platform:"UAV top"},{role:"Reflectance panel",calib_method:"captured before and after each flight"}],
+ satellite:[{role:"Satellite sensor",platform:"satellite"}],
+ rover:[{role:"Rover platform",platform:"ground rover"},{role:"Camera(s)",platform:"rover mast"},{role:"IMU / GNSS",platform:"rover",timesync:"GPS / ROS time"}],
+ manual:[{role:"Measuring tools (ruler, scale, moisture meter)",calib_method:"zero / check weight"}],
+ turntable:[{role:"Camera",platform:"scanning station"},{role:"Turntable",platform:"bench"},{role:"Lighting",platform:"fixed"},{role:"Scale / color target",calib_method:"known size"}],
+ roots:[{role:"Imaging device (scanner / camera / CT)",platform:"bench"},{role:"Scale reference",calib_method:"known size"}],
+ impedance:[{role:"Impedance analyzer",platform:"bench",calib_method:"open/short/load"},{role:"Kernel fixture / electrodes",platform:"bench"}],
+ genotypes:[],apsim:[],synthetic:[],
+ other:[]};
+function addPresets(){const ps=PRESETS[S.type]||[];if(!ps.length){notify("No suggested sensors for this type. Use + Add sensor.");return}ps.forEach(p=>S.f.sensors.push(Object.assign(blankSensor(),p)));persist();render()}
+function sensorsEditor(){const L=S.f.sensors;let h=`<div style="display:flex;gap:8px;margin:8px 0"><button onclick="addPresets()">Add suggested sensors for ${esc(T().name)}</button><button onclick="S.f.sensors.push(blankSensor());persist();render()">+ Add sensor</button></div>`;
+ if(!L.length)h+=`<div class="help">No sensors yet.</div>`;
+ L.forEach((sn,i)=>{h+=`<div style="border:1px solid #d5dae1;border-radius:6px;padding:12px 14px;margin:12px 0;background:${["#F7FAFD","#F6FBFC","#F6FBF7"][i%3]}"><div style="display:flex;justify-content:space-between;align-items:center"><b style="color:var(--navy)">Sensor ${i+1}${sn.role?": "+esc(sn.role):""}</b><button class="small" onclick="S.f.sensors.splice(${i},1);persist();render()">Remove</button></div><div class="row3">`+
+  SF.map(([k,l,ph,r])=>`<div class="field" style="margin:8px 0"><label style="font-size:13px">${esc(l)}${r?' <span class="req">*</span>':""}${["position","exposure","gain","other","calib_file","timesync"].includes(k)?'<span class="day">ON THE DAY</span>':""}</label><input type="text" value="${esc(sn[k])}" placeholder="${esc(ph)}" oninput="S.f.sensors[${i}]['${k}']=this.value;persist();refreshNav()"></div>`).join("")+`</div></div>`});
+ return h}
+function sensorLines(){return S.f.sensors.filter(x=>x.role||x.model).map(x=>SF.filter(([k])=>x[k]).map(([k,l])=>`${l}: ${x[k]}`).join("; "))}
+function genSensorsCSV(){return [SF.map(x=>x[0]).join(",")].concat(S.f.sensors.filter(x=>x.role||x.model).map(x=>SF.map(([k])=>csvCell(x[k])).join(","))).join("\n")+"\n"}
+function genProtocol(){const f=F();const sec=(h,v)=>v?`## ${h}\n${v}\n\n`:"";return `# Data collection protocol: ${f.title||"<title>"}\n\nDataset: ${datasetId()} · Steward: ${f.steward_name||""} · Site: ${f.site||""}\n\n`+sec("Objective",f.protocol_objective)+
+ "## Sensors and settings\n"+(S.f.sensors.filter(x=>x.role||x.model).map((x,i)=>`### ${i+1}. ${x.role||"sensor"} — ${x.model||""}\n`+SF.slice(2).filter(([k])=>x[k]).map(([k,l])=>`- **${l}:** ${x[k]}`).join("\n")).join("\n\n")||"<add sensors>")+"\n\n"+
+ sec("Before capture",f.protocol_pre)+sec("Procedure",f.protocol)+sec("Conditions recorded each session",f.protocol_conditions)+sec("Quality checks during capture",f.protocol_qa)+sec("After capture",f.protocol_post)+
+ (T().extras.filter(e=>S.x[e.k]).length?"## Dataset-specific settings\n"+T().extras.filter(e=>S.x[e.k]).map(e=>`- **${e.label}:** ${S.x[e.k]}`).join("\n")+"\n\n":"")+(f.protocol_doc?`Full protocol: ${f.protocol_doc}\n`:"")}
+function typeStep(){const groups=[...new Set(Object.values(TYPES).map(t=>t.group||"Other"))];
+ return `<div class="help">Pick the dataset you are curating. This sets the extra questions, suggested sensors, the folder layout, and whether MIAPPE applies. Pick "Other" if nothing fits.</div>`+groups.map(g=>`<h3 style="color:var(--navy);font-size:15px;margin:18px 0 0">${esc(g)}</h3><div class="cards">${Object.entries(TYPES).filter(([k,t])=>(t.group||"Other")===g).map(([k,t])=>`<div class="card ${S.type===k?"sel":""}" onclick="pickType('${k}')"><b>${esc(t.name)}</b><span>${esc(t.desc)}</span><br><span style="font-size:12px">MIAPPE: ${t.plant?"yes":"no"}</span></div>`).join("")}</div>`).join("")}
+function pickType(k){S.type=k;if(!S.f.formats)S.f.formats=TYPES[k].formats;persist();render()}
+function extrasStep(){const t=T();if(!t.extras.length)return `<div class="help">No extra questions for "Other". Add anything special to the protocol field in step 4.</div>`;
+  return `<div class="help">Questions specific to <b>${esc(t.name)}</b>. Red tags mark facts that must be recorded during collection.</div>`+t.extras.map(e=>fieldHTML(e,"x")).join("")}
+
+// ---------- generators ----------
+const F=()=>S.f;
+function datasetId(){const f=F(),y=(f.start||"YYYY").slice(0,4);return `${y}_${(f.site_code||"SITE").replace(/\s+/g,"")}_${T().short}`}
+function yamlStr(v){v=String(v??"");return /[:#\-\n"'{}\[\],&*!|>%@`]/.test(v)||v===""?JSON.stringify(v):v}
+function genYAML(){const f=F(),t=T();let y=`# Study card: generated by Study Card Builder\ndataset_type: ${yamlStr(t.name)}\ntitle: ${yamlStr(f.title)}\ndescription: ${yamlStr(f.description)}\ndataset_id: ${datasetId()}\nversion: "v1.0"\nsteward: {name: ${yamlStr(f.steward_name)}, email: ${yamlStr(f.steward_email)}, orcid: ${yamlStr(f.steward_orcid)}}\nowner_pi: ${yamlStr(f.owner)}\ninstitution: ${yamlStr(f.institution)}\nfunding: [{agency: ${yamlStr(f.funder)}, award: ${yamlStr(f.award)}}]\ndates: {start: ${yamlStr(f.start)}, end: ${yamlStr(f.end)}}\nsessions:\n${sessions().map(s=>"  - "+s).join("\n")||"  []"}\nlocation: {site: ${yamlStr(f.site)}, code: ${yamlStr(f.site_code)}, lat: ${f.lat||"null"}, lon: ${f.lon||"null"}, country: ${yamlStr(f.country)}}\nplant_experiment: ${t.plant}\nspecies: ${yamlStr(f.species)}\ngenotypes: ${yamlStr(f.genotypes)}\nobservation_unit: ${yamlStr(f.obs_unit)}\nsensors:\n${S.f.sensors.filter(d=>d.role||d.model).map(d=>"  - {"+SF.map(([k])=>k+": "+yamlStr(d[k])).join(", ")+"}").join("\n")||"  []"}\nprotocol: {objective: ${yamlStr(f.protocol_objective)}, before: ${yamlStr(f.protocol_pre)}, procedure: ${yamlStr(f.protocol)}, conditions: ${yamlStr(f.protocol_conditions)}, qa: ${yamlStr(f.protocol_qa)}, after: ${yamlStr(f.protocol_post)}, document: ${yamlStr(f.protocol_doc)}}\nkeywords: ${yamlStr(f.keywords)}\nid_scheme: ${yamlStr(f.id_scheme)}\nvariables_file: 01_metadata/data_dictionary.csv\nground_truth: ${yamlStr(f.ground_truth)}\nprocessing:\n${f.steps.filter(s=>s.step).map(s=>`  - {step: ${yamlStr(s.step)}, software: ${yamlStr(s.software)}, version: ${yamlStr(s.version)}, git_commit: ${yamlStr(s.git_commit)}}`).join("\n")||"  []"}\nquality_checks: ${yamlStr(f.qc)}\nfile_formats: ${yamlStr(f.formats)}\nlicense: ${yamlStr(f.license)}\naccess_tier: ${yamlStr(f.tier)}\nembargo_until: ${yamlStr(f.embargo)}\naccess_rule: ${yamlStr(f.access_note)}\nlimitations: ${yamlStr(f.limitations)}\nintended_use: ${yamlStr(f.intended_use)}\nbiases: ${yamlStr(f.biases)}\nsensitive_info_removed: ${yamlStr(f.sensitive)}\ndeposit: {repository: ${yamlStr(f.repo)}, doi: ${yamlStr(f.doi)}, landing_page: ${yamlStr(f.landing)}, published: ${yamlStr(f.pub_date)}, code_url: ${yamlStr(f.code_url)}, code_commit: ${yamlStr(f.code_commit)}, paper: ${yamlStr(f.paper)}, venue: ${yamlStr(f.venue)}, ag_data_commons: ${yamlStr(f.agdc)}}\nmiappe_extra: {growth_facility: ${yamlStr(f.facility)}, design_type: ${yamlStr(f.design_type)}, design_map: ${yamlStr(f.design_map)}, cultural_practices: ${yamlStr(f.cultural)}, material_source: ${yamlStr(f.seed_source)}}\nextras:\n`;
+  t.extras.forEach(e=>y+=`  ${e.k}: ${yamlStr(S.x[e.k])}   # ${e.label}\n`);return y}
+function sessions(){return (F().sessions||"").split(/\n|,/).map(s=>s.trim()).filter(Boolean)}
+function csvCell(v){v=String(v??"");return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function genDict(){const r=[["column","description","unit","ontology_id","value_type","method"]];F().variables.filter(v=>v.column).forEach(v=>r.push([v.column,v.description,v.unit,v.ontology_id,v.value_type,v.method]));return r.map(x=>x.map(csvCell).join(",")).join("\n")+"\n"}
+function genTree(){const t=T(),id=datasetId(),ss=sessions();
+  let raw=t.raw;if(ss.length)raw=t.raw.replace(/01_YYYY-MM-DD/,"01_"+ss[0])+(ss.length>1?`\n02_raw/02_${ss[1]}/ …`:"");
+  const proc=ss.length?t.proc.replace(/01_YYYY-MM-DD/g,"01_"+ss[0]):t.proc;
+  return `${id}/\n  README.md\n  00_docs/            protocols, notes\n  01_metadata/        study_card.yaml  data_dictionary.csv  capture_log.csv  ids.csv${t.plant?"  miappe.tsv":""}  croissant.json  datacite.json\n`+[raw,proc].join("\n").split("\n").map(l=>"  "+l).join("\n")+`\n  05_code/            scripts (git commit in study card)\n  99_review/          duplicates, problem files\n\nRules: 02_raw is read-only · every processed file is versioned (_v1) · IDs match everywhere.`}
+function genREADME(){const f=F(),t=T();return `# ${f.title||"<title>"}
+
+${f.description||"<description>"}
+
+| Field | Value |
+|---|---|
+| Dataset ID | ${datasetId()} |
+| Type | ${t.name} |
+| Version | v1.0 |
+| Steward | ${f.steward_name||""} (${f.steward_email||""})${f.steward_orcid?", ORCID "+f.steward_orcid:""} |
+| Owner / PI | ${f.owner||""}, ${f.institution||""} |
+| Funding | ${[f.funder,f.award].filter(Boolean).join(", ")} |
+| Dates | ${f.start||""} to ${f.end||""} (${sessions().length} sessions) |
+| Site | ${f.site||""}${f.lat?` (${f.lat}, ${f.lon})`:""} |
+| Species / material | ${f.species||""}; ${f.genotypes||""} |
+| Observation unit | ${f.obs_unit||""} |
+| License | ${f.license} |
+| Access tier | ${f.tier}${f.embargo?", embargo until "+f.embargo:""}${f.access_note?" — "+f.access_note:""} |
+
+## Sensors
+${sensorLines().map(l=>"- "+l).join("\n")||"- <add sensors>"}
+
+## How the data was collected
+${f.protocol_objective||""}
+
+${f.protocol||""}
+
+Full protocol: \`01_metadata/protocol.md\`${f.protocol_doc?" and "+f.protocol_doc:""}
+
+**ID scheme:** ${f.id_scheme||""}
+
+${t.extras.filter(e=>S.x[e.k]).map(e=>`- **${e.label}:** ${S.x[e.k]}`).join("\n")}
+
+## Processing
+${F().steps.filter(s=>s.step).map((s,i)=>`${i+1}. ${s.step} — ${s.software} ${s.version} (commit ${s.git_commit||"?"})`).join("\n")||"<add steps>"}
+
+**Ground truth:** ${f.ground_truth||S.x.gt||""}
+
+**Quality checks / known problems:** ${f.qc||""}
+
+## Folder layout
+\`\`\`
+${genTree()}
+\`\`\`
+
+## Variables
+See \`01_metadata/data_dictionary.csv\`.
+
+## Limitations, intended use, biases
+- **Limitations:** ${f.limitations||""}
+- **Intended use:** ${f.intended_use||""}
+- **Biases:** ${f.biases||""}
+- **Sensitive information:** ${f.sensitive||""}
+
+## Deposit
+- Repository: ${f.repo||"<Repository>"} · DOI: ${f.doi||"<DOI>"} · Landing page: ${f.landing||""}
+- Code: ${f.code_url||""} ${f.code_commit||""}
+- Related paper: ${f.paper||""}
+
+## How to cite
+${f.steward_name||"<creators>"} (${(f.start||"YYYY").slice(0,4)}). ${f.title||"<title>"} (Version v1.0) [Data set]. <Repository>. https://doi.org/<DOI>
+`}
+function genMIAPPE(){const f=F(),t=T();if(!t.plant)return "MIAPPE does not apply: this is not a plant experiment.\nThe same facts are in README.md and croissant.json.\n";
+  const r=[["Section","MIAPPE field","Value"],
+  ["Investigation","Investigation unique ID",datasetId()],["Investigation","Investigation title",f.title],["Investigation","Investigation description",f.description],
+  ["Investigation","Submission date",new Date().toISOString().slice(0,10)],["Investigation","License",f.license],["Investigation","MIAPPE version","1.2"],
+  ["Study","Study unique ID",datasetId()+"_s1"],["Study","Study title",f.title],["Study","Start date of study",f.start],["Study","End date of study",f.end],
+  ["Study","Contact institution",f.institution],["Study","Geographic location (country)",f.country],["Study","Experimental site name",f.site],
+  ["Study","Geographic location (latitude)",f.lat],["Study","Geographic location (longitude)",f.lon],["Study","Description of the experimental design",f.protocol],
+  ["Study","Observation unit level hierarchy",f.obs_unit],["Study","Observation unit description",f.id_scheme],
+  ["Person","Person name",f.steward_name],["Person","Person email",f.steward_email],["Person","Person ID",f.steward_orcid?"https://orcid.org/"+f.steward_orcid:""],["Person","Person role","data steward"],
+  ["Person","Person name",f.owner],["Person","Person role","principal investigator"],
+  ["Data file","Data file link","see 01_metadata/ (README.md)"],["Data file","Data file version","v1.0"],
+  ["Biological material","Organism",f.species],["Biological material","Biological material ID / list",f.genotypes],["Biological material","Material source ID",f.seed_source],
+  ["Study","Description of growth facility",f.facility],["Study","Type of experimental design",f.design_type],["Study","Map of experimental design",f.design_map],["Study","Cultural practices",f.cultural],
+  ["Data file","Data file link",f.landing||(f.doi?"https://doi.org/"+f.doi:"")]];
+  F().env.filter(e=>e.parameter).forEach(e=>{r.push(["Environment","Environment parameter",e.parameter]);r.push(["Environment","Environment parameter value",e.value])});
+  F().factors.filter(e=>e.factor).forEach(e=>{r.push(["Experimental factor","Experimental factor type",e.factor]);r.push(["Experimental factor","Experimental factor description",e.description]);r.push(["Experimental factor","Experimental factor values",e.values])});
+  F().events.filter(e=>e.event).forEach(e=>{r.push(["Event","Event type",e.event]);r.push(["Event","Event date",e.date]);r.push(["Event","Event description",e.description])});
+  F().variables.filter(v=>v.column).forEach(v=>{r.push(["Observed variable","Variable ID",v.column]);r.push(["Observed variable","Variable name",v.description]);r.push(["Observed variable","Variable accession number",v.ontology_id]);r.push(["Observed variable","Method description",v.method]);r.push(["Observed variable","Scale (unit)",v.unit])});
+  return r.map(x=>x.map(c=>String(c??"").replace(/\t|\n/g," ")).join("\t")).join("\n")+"\n"}
+function genCroissant(){const f=F(),t=T();const num=u=>u&&u!=="-";
+  const o={"@context":{"@vocab":"https://schema.org/","cr":"http://mlcommons.org/croissant/","rai":"http://mlcommons.org/croissant/RAI/","dct":"http://purl.org/dc/terms/","sc":"https://schema.org/"},
+  "@type":"sc:Dataset","dct:conformsTo":"http://mlcommons.org/croissant/1.1","name":datasetId(),"description":f.description||"","version":"1.0.0",
+  "license":f.license==="CC0-1.0"?"https://creativecommons.org/publicdomain/zero/1.0/":f.license==="CC-BY-4.0"?"https://creativecommons.org/licenses/by/4.0/":"restricted: "+(f.access_note||""),
+  "url":"https://doi.org/<DOI>","datePublished":"<YYYY-MM-DD>",
+  "creator":[{"@type":"sc:Person","name":f.steward_name||"","email":f.steward_email||"",...(f.steward_orcid?{"identifier":"https://orcid.org/"+f.steward_orcid}:{})}],
+  "citeAs":`${f.steward_name||""} (${(f.start||"").slice(0,4)}). ${f.title||""}. https://doi.org/<DOI>`,
+  "rai:dataCollection":[f.protocol_objective,f.protocol,...sensorLines().map(l=>"Sensor: "+l),...t.extras.filter(e=>S.x[e.k]).map(e=>e.label+": "+S.x[e.k])].filter(Boolean).join(" | "),
+  "rai:dataLimitations":f.limitations||"","rai:dataBiases":f.biases||"","rai:dataUseCases":f.intended_use||"","rai:personalSensitiveInformation":f.sensitive||"",
+  "distribution":[{"@type":"cr:FileObject","@id":"results-table","name":"results table","contentUrl":"04_results/<results>_v1.csv","encodingFormat":"text/csv","sha256":"<checksum>"}],
+  "recordSet":[{"@type":"cr:RecordSet","@id":"records","name":"records","field":F().variables.filter(v=>v.column).map(v=>({"@type":"cr:Field","@id":"records/"+v.column,"name":v.column,"description":[v.description,v.unit&&v.unit!=="-"?"unit: "+v.unit:"",v.ontology_id?"ontology: "+v.ontology_id:"","value_type: "+v.value_type].filter(Boolean).join("; "),"dataType":num(v.unit)?"sc:Float":"sc:Text","source":{"fileObject":{"@id":"results-table"},"extract":{"column":v.column}}}))}]};
+  return JSON.stringify(o,null,2)}
+function genDataCite(){const f=F();return JSON.stringify({"types":{"resourceTypeGeneral":"Dataset"},"titles":[{"title":f.title||""}],
+  "creators":[{"name":f.steward_name||"","nameType":"Personal",...(f.steward_orcid?{"nameIdentifiers":[{"nameIdentifier":"https://orcid.org/"+f.steward_orcid,"nameIdentifierScheme":"ORCID"}]}:{}),"affiliation":[{"name":f.institution||""}]}],
+  "publisher":{"name":"<Repository>"},"publicationYear":"<YYYY>","version":"1.0","rightsList":[{"rights":f.license}],
+  "descriptions":[{"description":f.description||"","descriptionType":"Abstract"}],
+  "fundingReferences":f.funder?[{"funderName":f.funder,"awardNumber":f.award||""}]:[],
+  "dates":[{"date":`${f.start||""}/${f.end||""}`,"dateType":"Collected"}],
+  "geoLocations":f.lat?[{"geoLocationPlace":f.site||"","geoLocationPoint":{"pointLatitude":+f.lat,"pointLongitude":+f.lon}}]:[]},null,2)}
+function genCaptureLog(){const t=T();const cols=["session","date","site","operator","start_time","end_time","sensors_used","settings_changed","calibration_files","weather_lighting","notes",...t.extras.filter(e=>e.day).map(e=>e.k)];
+  return cols.join(",")+"\n"+sessions().map((s,i)=>[String(i+1).padStart(2,"0"),s,F().site_code||"","","","","","","","",""].concat(t.extras.filter(e=>e.day).map(()=>"")).join(",")).join("\n")+"\n"}
+
+function dep(t){const f=F();const doi=f.doi?String(f.doi).replace(/^https?:\/\/doi.org\//,""):"";
+  if(doi)t=t.split("https://doi.org/<DOI>").join("https://doi.org/"+doi).split("<DOI>").join(doi);
+  if(f.repo)t=t.split("<Repository>").join(f.repo);
+  if(f.pub_date){t=t.split("<YYYY-MM-DD>").join(f.pub_date).split("<YYYY>").join(f.pub_date.slice(0,4))}
+  return t}
+function genAvail(){const f=F(),doi=f.doi?"https://doi.org/"+String(f.doi).replace(/^https?:\/\/doi.org\//,""):"https://doi.org/<DOI>";const tier=(f.tier||"").charAt(0);
+  const code=f.code_url?` Code is available at ${f.code_url}${f.code_commit?" ("+f.code_commit+")":""}.`:"";
+  let txt;
+  if(tier==="0")txt=`The data supporting this study are available in ${f.repo||"<Repository>"} at ${doi} under a ${f.license} license.${code}`;
+  else if(tier==="1")txt=`Metadata are available now at ${doi}. The data will be released at the same DOI on ${f.embargo||"<date>"}, no later than 12 months after publication.${code}`;
+  else txt=`Metadata are openly available at ${doi}. The data are restricted (${f.access_note||"<reason>"}) and are available from ${f.steward_name||"the data steward"} (${f.steward_email||"email"}) on reasonable request, subject to that restriction.${code}`;
+  return `# Data availability statement\n\nPaste into the paper's Data Availability section.\n\n${txt}\n\n## For double-blind review\nAn anonymized copy of the data is available to reviewers at <anonymous link>. A DOI will be provided at publication.\n\n## Data citation (reference list)\n${f.steward_name||"<Creators>"} (${(f.pub_date||f.start||"YYYY").slice(0,4)}). ${f.title||"<Title>"} (Version 1.0) [Data set]. ${f.repo||"<Repository>"}. ${doi}\n`}
+function genCFF(){const f=F();const nm=(f.steward_name||"Given Family").trim().split(/\s+/);const fam=nm.length>1?nm.pop():nm[0];const giv=nm.join(" ");
+  return `cff-version: 1.2.0\nmessage: "If you use this dataset, please cite it as below."\ntitle: ${yamlStr(f.title)}\ntype: dataset\nversion: "1.0.0"\n${f.pub_date?`date-released: "${f.pub_date}"\n`:""}${f.doi?`doi: "${String(f.doi).replace(/^https?:\/\/doi.org\//,"")}"\n`:""}license: ${(f.license||"").startsWith("CC")?f.license:"other"}\n${f.landing?`url: "${f.landing}"\n`:""}${f.code_url?`repository-code: "${f.code_url}"\n`:""}authors:\n  - family-names: ${yamlStr(fam)}\n    given-names: ${yamlStr(giv)}\n${f.steward_orcid?`    orcid: "https://orcid.org/${f.steward_orcid}"\n`:""}    affiliation: ${yamlStr(f.institution)}\n`}
+
+// ---------- portal formats ----------
+const kw=()=>(F().keywords||"").split(",").map(x=>x.trim()).filter(Boolean);
+const doiStr=()=>F().doi?String(F().doi).replace(/^https?:\/\/doi.org\//,""):"";
+function nameParts(n){n=(n||"").trim().split(/\s+/);const fam=n.length>1?n.pop():(n[0]||"");return [fam,n.join(" ")]}
+function hfLicense(){const l=F().license;return l==="CC-BY-4.0"?"cc-by-4.0":l==="CC0-1.0"?"cc0-1.0":"other"}
+function genHF(){const f=F(),t=T();const tags=["agriculture","plant-phenotyping",...kw().map(k=>k.toLowerCase().replace(/\s+/g,"-"))];
+ const y=["---",`pretty_name: ${yamlStr(f.title)}`,`license: ${hfLicense()}`,"tags:",...[...new Set(tags)].map(x=>"  - "+x),
+  ...(f.hf_task?["task_categories:","  - "+f.hf_task]:[]),...(f.size_cat?["size_categories:","  - "+f.size_cat]:[]),
+  "configs:","  - config_name: default","    data_files:","      - split: train","        path: \"data/train-*\"","      - split: test","        path: \"data/test-*\"","---"].join("\n");
+ const vars=F().variables.filter(v=>v.column).map(v=>`| ${v.column} | ${v.description} | ${v.unit} | ${v.ontology_id} | ${v.value_type} |`).join("\n");
+ return `${y}
+
+<!-- Edit the configs paths above to match your files, or delete the configs block. -->
+
+# ${f.title||"<title>"}
+
+## Dataset summary
+${f.description||""}
+
+- **Curated by:** ${f.steward_name||""} (${f.institution||""})
+- **Owner / PI:** ${f.owner||""}
+- **Funding:** ${[f.funder,f.award].filter(Boolean).join(", ")}
+- **License:** ${f.license}
+- **DOI:** ${doiStr()?"https://doi.org/"+doiStr():"<DOI>"}
+- **Code:** ${f.code_url||""}
+
+## Dataset structure
+One record = ${f.obs_unit||"<unit>"}. ID scheme: \`${f.id_scheme||""}\`.
+
+| column | description | unit | ontology | value type |
+|---|---|---|---|---|
+${vars}
+
+## Data collection
+${f.protocol_objective||""}
+
+${f.protocol||""}
+
+**Sensors**
+${sensorLines().map(l=>"- "+l).join("\n")}
+
+**Site and dates:** ${f.site||""}, ${f.start||""} to ${f.end||""}.
+
+## Uses
+- **Intended use:** ${f.intended_use||""}
+- **Limitations:** ${f.limitations||""}
+- **Bias, risks:** ${f.biases||""}
+- **Personal or sensitive information:** ${f.sensitive||""}
+
+## Citation
+\`\`\`
+${f.steward_name||"<creators>"} (${(f.pub_date||f.start||"YYYY").slice(0,4)}). ${f.title||""}. ${f.repo||"Hugging Face"}. ${doiStr()?"https://doi.org/"+doiStr():""}
+\`\`\`
+`}
+function genZenodo(){const f=F(),tier=(f.tier||"0").charAt(0);const [fam,giv]=nameParts(f.steward_name);
+ const o={title:f.title||"",upload_type:"dataset",description:(f.description||"")+(f.protocol_objective?"<br><br>"+f.protocol_objective:""),version:"1.0",
+  creators:[{name:`${fam}, ${giv}`,affiliation:f.institution||"",...(f.steward_orcid?{orcid:f.steward_orcid}:{})}],
+  access_right:tier==="0"?"open":tier==="1"?"embargoed":"restricted",...(tier==="1"&&f.embargo?{embargo_date:f.embargo}:{}),...(tier==="2"?{access_conditions:f.access_note||""}:{}),
+  license:hfLicense()==="other"?"":hfLicense(),keywords:kw(),
+  related_identifiers:[...(f.code_url?[{identifier:f.code_url,relation:"isSupplementedBy",resource_type:"software"}]:[]),...(f.paper&&/^10\./.test(f.paper)?[{identifier:f.paper,relation:"isDocumentedBy",scheme:"doi"}]:[])],
+  notes:`Funding: ${[f.funder,f.award].filter(Boolean).join(" ")}. Site: ${f.site||""}. Collected ${f.start||""} to ${f.end||""}.`};
+ return JSON.stringify(o,null,2)}
+function genSchemaOrg(){const f=F();const o={"@context":"https://schema.org","@type":"Dataset",name:f.title||"",description:f.description||"",
+  url:f.landing||(doiStr()?"https://doi.org/"+doiStr():""),...(doiStr()?{identifier:"https://doi.org/"+doiStr()}:{}),
+  license:hfLicense()==="cc-by-4.0"?"https://creativecommons.org/licenses/by/4.0/":hfLicense()==="cc0-1.0"?"https://creativecommons.org/publicdomain/zero/1.0/":"",
+  keywords:kw(),creator:[{"@type":"Person",name:f.steward_name||"",...(f.steward_orcid?{sameAs:"https://orcid.org/"+f.steward_orcid}:{}),affiliation:{"@type":"Organization",name:f.institution||""}}],
+  ...(f.funder?{funder:{"@type":"Organization",name:f.funder}}:{}),temporalCoverage:`${f.start||""}/${f.end||""}`,
+  ...(f.lat?{spatialCoverage:{"@type":"Place",name:f.site||"",geo:{"@type":"GeoCoordinates",latitude:+f.lat,longitude:+f.lon}}}:{}),
+  variableMeasured:F().variables.filter(v=>v.column).map(v=>({"@type":"PropertyValue",name:v.column,description:v.description,unitText:v.unit,...(v.ontology_id?{propertyID:v.ontology_id}:{})})),
+  measurementTechnique:S.f.sensors.filter(x=>x.role).map(x=>`${x.role}${x.model?" ("+x.model+")":""}`)};
+ return `<!-- Paste into the <head> of the dataset landing page so Google Dataset Search can find it -->\n<script type="application/ld+json">\n${JSON.stringify(o,null,2)}\n<`+`/script>\n`}
+function genKaggle(){const f=F();return JSON.stringify({title:(f.title||"").slice(0,50),subtitle:(f.description||"").slice(0,80),id:f.hf_repo||"<kaggle-username>/<dataset-slug>",
+  licenses:[{name:f.license==="CC0-1.0"?"CC0-1.0":f.license==="CC-BY-4.0"?"CC-BY-4.0":"other"}],keywords:kw(),description:f.description||""},null,2)}
+function genADC(){const f=F();const row=(k,v,n)=>`| ${k} | ${v||"<fill>"} | ${n||""} |`;return `# Ag Data Commons record: fill-in sheet
+
+Copy each value into the Ag Data Commons form ("+ Create a new item"). Required fields there are marked with a red asterisk; check the current
+data submission manual: https://www.nal.usda.gov/services/agdatacommons/data-submission-manual
+
+Use **Link to external files** with your repository DOI if the data lives elsewhere (ISU DataShare, Zenodo, Dataverse). Ag Data Commons does not accept data with personally identifiable information.
+
+| Field | Value | Note |
+|---|---|---|
+${[row("Title",f.title),row("Authors (with ORCID)",`${f.steward_name||""}${f.steward_orcid?" (ORCID "+f.steward_orcid+")":""}; ${f.owner||""}`),row("Description",(f.description||"")+" "+(f.protocol_objective||"")),
+row("Keywords",kw().join("; "),"prefer NAL Thesaurus terms"),row("Funding (USDA award)",[f.funder,f.award].filter(Boolean).join(" "),"required: the USDA funding source"),
+row("Data contact name and email",`${f.steward_name||""}, ${f.steward_email||""}`),row("Publisher",f.repo||f.institution),
+row("Temporal extent start date",f.start),row("Temporal extent end date",f.end),row("Geographic coverage",`${f.site||""}${f.lat?" ("+f.lat+", "+f.lon+")":""}`),
+row("Theme","","pick in the form"),row("ISO topic category","farming","pick in the form"),row("License",f.license),
+row("Link to external files",doiStr()?"https://doi.org/"+doiStr():f.landing,"repository DOI"),row("Related materials",[f.paper,f.code_url].filter(Boolean).join("; "),"paper DOI, code"),
+row("Data dictionary","01_metadata/data_dictionary.csv","attach"),row("Methods / protocol","01_metadata/protocol.md","attach or paste")].join("\n")}
+`}
+function genPortalSheet(){const f=F();return `# Portal field sheet (ISU DataShare, Harvard Dataverse, others)
+
+Most portals ask for the same facts. Copy from here.
+
+| Field | Value |
+|---|---|
+| Title | ${f.title||""} |
+| Authors | ${f.steward_name||""}${f.steward_orcid?" (ORCID "+f.steward_orcid+")":""}; ${f.owner||""} |
+| Affiliation | ${f.institution||""} |
+| Description / abstract | ${f.description||""} |
+| Keywords / subjects | ${kw().join("; ")} |
+| Item type | Dataset |
+| License | ${f.license} |
+| Funding | ${[f.funder,f.award].filter(Boolean).join(" ")} |
+| Dates collected | ${f.start||""} to ${f.end||""} |
+| Location | ${f.site||""}${f.lat?" ("+f.lat+", "+f.lon+")":""} |
+| Methods | see protocol.md (sensors, procedure, settings) |
+| Related | ${[f.paper,f.code_url].filter(Boolean).join("; ")} |
+| Contact | ${f.steward_email||""} |
+
+**ISU DataShare:** open data only (CC0 or CC BY); request a DOI at publish time.
+**Harvard Dataverse:** fill the Citation block with the values above; download the Croissant export afterwards (Metadata → Export Metadata → Croissant).
+**Hugging Face:** use \`hf_dataset_card.md\` as README.md. **Kaggle:** use \`dataset-metadata.json\`. **Zenodo:** \`.zenodo.json\` (GitHub releases) or paste fields.
+`}
+function genManifestPy(){return MANIFEST_PY}
+const OUT={"study_card.yaml":genYAML,"README.md":genREADME,"data_dictionary.csv":genDict,"capture_log.csv":genCaptureLog,"miappe.tsv":genMIAPPE,"croissant.json":genCroissant,"datacite.json":genDataCite,"folder_layout.txt":genTree,"DATA_AVAILABILITY.md":genAvail,"CITATION.cff":genCFF,"make_manifest.py":genManifestPy,"sensors.csv":genSensorsCSV,"protocol.md":genProtocol,"hf_dataset_card.md":genHF,".zenodo.json":genZenodo,"ag_data_commons_sheet.md":genADC,"schema_org.html":genSchemaOrg,"dataset-metadata.json":genKaggle,"portal_fields.md":genPortalSheet};
+const OUTF=k=>k==="make_manifest.py"?OUT[k]():dep(OUT[k]());
+function exportStep(){const m=missingList();const t=T();
+  let h=`<div class="${m.length?"help":"oneline"}">${m.length?`<b>${m.length} required fields are still empty.</b> You can download now and fill the blanks later, but the red <span class="day">ON THE DAY</span> ones cannot be recovered after collection.`:"<b>All required fields are filled.</b> Download the files and put them in <code>01_metadata/</code>."}</div>`;
+  if(m.length)h+=`<ul class="checklist">${m.map(([i,l,d])=>`<li class="miss">✗ <a href="#" onclick="go(${i});return false">${esc((i+1)+". "+STEPS[i].title)}</a>: ${esc(l)}${d?' <span class="day">ON THE DAY</span>':""}</li>`).join("")}</ul>`;
+  h+=`<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="primary" onclick="downloadAll()">Download all files (.zip)</button><button onclick="dl(S.tab,OUTF(S.tab))">Download this file</button><button onclick="copyTab()">Copy</button></div>`;
+  const GROUPS=[["Core metadata (01_metadata/)",["study_card.yaml","README.md","data_dictionary.csv","sensors.csv","protocol.md","capture_log.csv","miappe.tsv","croissant.json","datacite.json","folder_layout.txt"]],["Sharing portals",["hf_dataset_card.md",".zenodo.json","ag_data_commons_sheet.md","dataset-metadata.json","schema_org.html","portal_fields.md"]],["Paper and checks",["DATA_AVAILABILITY.md","CITATION.cff","make_manifest.py"]]];
+  h+=GROUPS.map(([g,ks])=>`<div style="margin-top:12px;font-size:12.5px;font-weight:700;color:var(--gray)">${g}</div><div class="tabs" style="margin-top:4px">${ks.map(k=>`<button class="${S.tab===k?"on":""}" onclick="S.tab='${k}';persist();render()">${k}${k==="miappe.tsv"&&!t.plant?" (n/a)":""}</button>`).join("")}</div>`).join("")+`<div style="height:6px"></div><pre id="preview">${esc(OUTF(S.tab))}</pre>`;
+  h+=`<div class="help" style="margin-top:14px"><b>Where these go:</b> README.md at the top of your project; core metadata in <code>01_metadata/</code>. Portal files are for upload: <code>hf_dataset_card.md</code> becomes the Hugging Face README.md, <code>.zenodo.json</code> goes in a GitHub repo linked to Zenodo, <code>dataset-metadata.json</code> is for Kaggle, <code>ag_data_commons_sheet.md</code> and <code>portal_fields.md</code> are copy-paste sheets, <code>schema_org.html</code> goes on a landing page. Keep the saved progress (.json) there too, so you can reload and update. Run <code>make_manifest.py</code> from a terminal: <code>python make_manifest.py "path/to/your-dataset"</code> (Windows: <code>py</code>). After you get a DOI in step 10, download again so every file carries it. Then go to step 12.</div>`;
+  return h}
+function dl(name,text){saveBlob(name,new Blob([text],{type:"text/plain"}))}
+async function downloadAll(){const base=(datasetId()||"study_card");
+ if(window.JSZip){const z=new JSZip(),d=z.folder(base+"_metadata");Object.keys(OUT).forEach(k=>d.file(k,OUTF(k)));d.file("study_card_progress.json",JSON.stringify(S,null,2));
+  const blob=await z.generateAsync({type:"blob",compression:"DEFLATE"});saveBlob(base+"_metadata.zip",blob);return}
+ let i=0;Object.keys(OUT).forEach(k=>{setTimeout(()=>dl(k,OUTF(k)),i++*350)});setTimeout(()=>dl("study_card_progress.json",JSON.stringify(S,null,2)),i*350)}
+async function copyTab(){try{await navigator.clipboard.writeText(OUTF(S.tab));notify("Copied "+S.tab+".")}catch(e){notify("Copy was blocked. Select the text in the preview and copy it.")}}
+function saveProgress(){dl((datasetId()||"study_card")+"_progress.json",JSON.stringify(S,null,2))}
+function loadProgress(ev){const file=ev.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o.f)throw 0;S=Object.assign(blank(),o);migrate();persist();render()}catch(e){notify("That file is not a saved Study Card progress file.")}};r.readAsText(file);ev.target.value=""}
+
+// ---------- finish checklist ----------
+function checkItems(){const f=F(),t=T(),v=f.venue||"",tier=(f.tier||"0").charAt(0),usda=/usda|nifa/i.test((f.funder||"")+" "+(f.agdc||""));
+ const L=(u,txt)=>`<a href="${u}" target="_blank">${txt}</a>`;
+ const it=[
+ ["A. Collect","c1","Capture log filled on the day for every session (capture_log.csv)"],
+ ["A. Collect","c2","Calibration / reference files saved with their session (panel, white/dark refs, reference sensor, robot calibration)"],
+ ["A. Collect","c3","Ground-truth measurements recorded with method and units"],
+ ["B. Describe","d1","Study card complete (this app: 100% of required fields, or blanks explained)"],
+ ["B. Describe","d2","Every variable has a unit; traits have ontology IDs ("+L("https://cropontology.org","Crop Ontology")+", "+L("https://www.ebi.ac.uk/ols4","OLS")+")"],
+ ["B. Describe","d3","ids.csv lists every plot / plant / object / episode; genotype public IDs (GRIN, G2F) where they exist"],
+ ["B. Describe","d4","links.csv written if this dataset pairs with another (e.g. tassel UAV ↔ handheld)"],
+ ["C. Organize","o1","Folder arranged in the lab layout with the FAIR Folder Curator (app/fair-folder-curator.html) or tools/fair_curate.py"],
+ ["C. Organize","o2","02_raw is read-only; processed files versioned (_v1); code commit recorded"],
+ ["C. Organize","o3","Downloaded files placed: README.md at top, the rest in 01_metadata/"],
+ ["D. Check","k1","Ran make_manifest.py: MANIFEST.sha256 + manifest.csv + qc_report.md written"],
+ ["D. Check","k2","Fixed everything in qc_report.md (or moved it to 99_review/) and re-ran the script"],
+ ["D. Check","k3","IDs match character-for-character in file names, tables and metadata"],
+ ["D. Check","k4","FAIR score and AI-readiness score (templates/readiness_score.md) recorded, before and after"],
+ ["D. Check","k5","A labmate opened the README and loaded one file without asking you anything"],
+ ["E. Deposit","p1","PI approved the license ("+esc(f.license||"")+") and access tier ("+esc(f.tier||"")+")"],
+ ["E. Deposit","p2","Uploaded to a repository and got a DOI ("+L("https://datashare.iastate.edu","ISU DataShare")+", "+L("https://zenodo.org","Zenodo")+", "+L("https://dataverse.harvard.edu","Dataverse")+", "+L("https://huggingface.co/datasets","Hugging Face")+")"],
+ ["E. Deposit","p3","DOI entered in step 10, files re-downloaded so every file carries the DOI, and re-uploaded as the final version"],
+ ["E. Deposit","p4","DOI resolves; landing page shows title, creators, license, description"],
+ ["E. Deposit","p5","Checked the DOI with "+L("https://www.f-uji.net","F-UJI")+" and fixed what failed"],
+ ["E. Deposit","p8","Portal metadata uploaded with the files (Hugging Face card, Zenodo fields, or portal sheet) and the Croissant file attached or auto-generated"],
+ ["E. Deposit","p6","Dataset added to the lab dataset registry (name, steward, owner, tier, DOI)"]];
+ if(tier!=="0")it.push(["E. Deposit","p7","Restricted/embargoed: access rule written in README and Croissant; metadata still public"]);
+ if(usda)it.push(["F. Funder","g1","USDA: record in "+L("https://agdatacommons.nal.usda.gov","Ag Data Commons")+" linked to the DOI"]);
+ it.push(["F. Funder","g2","Award number in the metadata; dataset listed in the annual/final report and follows the grant's Data Management Plan"]);
+ if(/NeurIPS/.test(v)){it.push(["G. Paper","v1","NeurIPS E&D: data hosted and documented at submission (Dataverse, Kaggle, Hugging Face or OpenML preferred)"]);
+   it.push(["G. Paper","v2","Croissant includes core + Responsible-AI fields; passes the validator linked from the "+L("https://neurips.cc/Conferences/2026/EvaluationsDatasetsHosting","NeurIPS hosting guidelines")]);
+   it.push(["G. Paper","v3","Croissant file uploaded with the paper in OpenReview; public by camera-ready"])}
+ if(/CVPR/.test(v)){it.push(["G. Paper","v4","Double-blind: no names, ISU, grant IDs or links that identify you; GPS/serials stripped from sample images' EXIF"]);
+   it.push(["G. Paper","v5","Dataset claimed as a contribution → public with a stable URL by camera-ready"])}
+ if(/Scientific Data|Journal/.test(v)){it.push(["G. Paper","v6","Deposited before submission; reviewer access arranged if private until publication"]);
+   it.push(["G. Paper","v7","Data Availability + Code Availability sections written (DATA_AVAILABILITY.md); data cited in the reference list"])}
+ if(v&&v!=="no paper yet"){it.push(["G. Paper","v8","Submission package built from the curated folder: only the data the paper uses, split ID lists, one script per figure/table with commit (docs/04)"]);
+   it.push(["G. Paper","v9","A labmate rebuilt one figure from the package"])}
+ return it.map(([ph,id,txt])=>({ph,id,txt}))}
+function finishStep(){const it=checkItems();const done=it.filter(i=>S.chk[i.id]).length;let h=`<div class="help">Tick each item when it is really done. Items change with your access tier, funder and target venue (step 10). <b>${done} of ${it.length} done.</b></div>`;
+ let cur="";it.forEach(i=>{if(i.ph!==cur){if(cur)h+="</ul>";cur=i.ph;h+=`<h3 style="color:var(--navy);margin:16px 0 4px;font-size:16px">${esc(cur)}</h3><ul style="list-style:none;padding-left:0;margin:0">`}
+  h+=`<li style="margin:6px 0;font-size:14px"><label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer"><input type="checkbox" ${S.chk[i.id]?"checked":""} onchange="S.chk['${i.id}']=this.checked;persist();refreshNav()"> <span>${i.txt}</span></label></li>`});
+ h+="</ul>";
+ h+=`<div class="oneline" style="margin-top:18px"><b>In one line:</b> describe it here, organize it with the Curator, check it with make_manifest.py, deposit it for a DOI, then put the DOI back in every file.</div>`;
+ return h}
+
+// ---------- import from FAIR Folder Curator (curator_session.json) ----------
+const CUR_SENS={"UAV RGB":{role:"RGB camera",platform:"UAV"},"UAV multispectral":{role:"Multispectral camera",platform:"UAV"},"LiDAR":{role:"LiDAR scanner"},"Hyperspectral":{role:"Hyperspectral camera"},"Turntable / lab imaging":{role:"Turntable",platform:"bench"},"Handheld photos":{role:"Camera",platform:"handheld"},"Weather":{role:"Weather / light sensor"}};
+function importCurator(ev){const file=ev.target.files[0];ev.target.value="";if(!file)return;const r=new FileReader();r.onload=()=>{let d;try{d=JSON.parse(r.result)}catch(e){notify("Not a JSON file.");return}
+ if(!d||!d.answers){notify("Not a FAIR Folder Curator session (curator_session.json).");return}
+ const a=d.answers,f=S.f,filled=[];const put=(k,v)=>{if(v!==undefined&&v!==null&&String(v).trim()!==""&&(f[k]===undefined||String(f[k]).trim()==="")){f[k]=v;filled.push(k)}};
+ put("title",a.title);put("site_code",a.site_code);put("description",a.description);put("steward_name",a.contact);put("steward_email",a.email);put("steward_orcid",a.orcid);
+ if(a.institution&&(!f.institution||f.institution==="Iowa State University")){f.institution=a.institution}
+ if(a.funding){const m=String(a.funding).match(/^(.*?)[\s,]+([A-Z0-9][A-Z0-9-]{4,})$/i);put("funder",m?m[1]:a.funding);if(m)put("award",m[2])}
+ put("species",a.organism);put("site",a.site);
+ if(a.latlon){const ll=String(a.latlon).split(/[,\s]+/).filter(Boolean);put("lat",ll[0]);put("lon",ll[1])}
+ put("start",a.start);put("end",a.end);put("doi",a.doi);put("paper",a.links);
+ if(Array.isArray(d.sessions)&&d.sessions.length)put("sessions",d.sessions.map(x=>x.date).filter(Boolean).join("\n"));
+ if(a.license&&a.license.startsWith("CC")&&f.license==="CC-BY-4.0"&&a.license!=="CC-BY-4.0"){f.license=a.license;filled.push("license")}
+ const acc={"Open":"0 open","Open after embargo":"1 embargo","Restricted: request access":"2 restricted","Internal lab only":"2 restricted"}[a.access];if(acc&&f.tier==="0 open"&&acc!=="0 open"){f.tier=acc;filled.push("tier")}
+ if(Array.isArray(a.sensors)&&a.sensors.length&&!f.sensors.some(x=>x.role||x.model)){f.sensors=a.sensors.filter(x=>CUR_SENS[x]).map(x=>Object.assign(blankSensor(),CUR_SENS[x]));filled.push("sensors")}
+ if(a.traits&&!f.variables.some(v=>v.column)){f.variables=String(a.traits).split(/;|\n/).map(t=>t.trim()).filter(Boolean).map(t=>({column:t.split(/\s*=\s*|\s*\(/)[0].trim().replace(/\s+/g,"_").slice(0,40),description:(t.split(/\s*=\s*/)[1]||t).replace(/\s*\(.*$/,""),unit:(t.match(/\(([^)]+)\)/)||["",""])[1],ontology_id:(t.match(/[A-Z]+_\d+:\d+/)||[""])[0],value_type:"observed",method:""}));filled.push("variables")}
+ if(a.processing&&!f.steps.some(x=>x.step)){f.steps=String(a.processing).split(/\n/).map(t=>t.trim()).filter(Boolean).map(t=>({step:t,software:"",version:"",git_commit:""}));filled.push("steps")}
+ persist();render();notify(filled.length?`Imported ${filled.length} fields from the Curator (only empty fields were filled): ${filled.join(", ")}.\nCheck units for variables and settings for sensors.`:"Nothing imported: all those fields already have answers here.")};r.readAsText(file)}
+render();
+</script>
+</body>
+</html>

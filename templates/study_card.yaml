@@ -1,0 +1,33 @@
+# Study card: fill this ONCE. README, MIAPPE, Croissant and the DOI form are built from it.
+# Leave a field as "" if unknown; never delete a field.
+
+title: ""
+description: ""                    # 3-4 sentences: what, where, when, how many
+dataset_id: ""                     # e.g. 2026_AEA_tassel-uav-3d
+version: "v1.0"
+steward: {name: "", email: "", orcid: ""}
+owner_pi: ""
+funding: [{agency: "", award: ""}]
+dates: {start: "", end: "", sessions: []}          # ISO 8601, e.g. 2026-07-22
+location: {site: "", lat: null, lon: null, room: ""}
+plant_experiment: true             # false for sensor calibration, robot data -> MIAPPE N/A
+biological_material:
+  species: ""                      # e.g. Zea mays (NCBITaxon:4577)
+  genotypes_file: "01_metadata/ids.csv"
+devices:
+  - {type: "", model: "", serial: "", firmware: "", settings: ""}
+protocol: ""                       # one paragraph + key settings
+id_scheme: ""                      # how files/plots/plants/objects/episodes are named
+variables_file: "01_metadata/data_dictionary.csv"
+ground_truth: {what: "", method: "", n: null}
+processing:
+  - {step: "", software: "", version: "", git_commit: ""}
+file_formats: []
+license: "CC-BY-4.0"
+access_tier: 0                     # 0 open, 1 embargo (date), 2 restricted (reason)
+embargo_until: ""
+limitations: ""                    # -> Croissant rai:dataLimitations
+intended_use: ""                   # -> rai:dataUseCases
+biases: ""                         # -> rai:dataBiases
+sensitive_info_removed: ""         # -> rai:personalSensitiveInformation
+links_file: "01_metadata/links.csv"

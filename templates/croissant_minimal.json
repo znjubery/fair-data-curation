@@ -1,0 +1,29 @@
+{
+  "@context": {
+    "@vocab": "https://schema.org/",
+    "cr": "http://mlcommons.org/croissant/",
+    "rai": "http://mlcommons.org/croissant/RAI/",
+    "dct": "http://purl.org/dc/terms/",
+    "sc": "https://schema.org/"
+  },
+  "@type": "sc:Dataset",
+  "dct:conformsTo": "http://mlcommons.org/croissant/1.1",
+  "name": "<dataset name>",
+  "description": "<one paragraph: what, where, when, how many>",
+  "url": "<landing page or DOI URL>",
+  "license": "https://creativecommons.org/licenses/by/4.0/",
+  "version": "1.0.0",
+  "datePublished": "<YYYY-MM-DD>",
+  "creator": [{"@type": "sc:Person", "name": "<name>", "identifier": "https://orcid.org/<id>"}],
+  "citeAs": "<citation or BibTeX>",
+  "rai:dataCollection": "<how and when data were collected; sensors; protocol>",
+  "rai:dataLimitations": "<one site/season, sensor gaps, known errors>",
+  "rai:dataBiases": "<genotype panel, geography, weather years represented>",
+  "rai:dataUseCases": "<intended uses and uses it is not suited for>",
+  "rai:personalSensitiveInformation": "<none, or what was removed (GPS of farms, faces)>",
+  "distribution": [
+    {"@type": "cr:FileSet", "@id": "trait-tables", "name": "trait tables",
+     "encodingFormat": "application/x-parquet", "includes": "04_results/*.parquet"}
+  ],
+  "recordSet": []
+}

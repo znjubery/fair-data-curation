@@ -31,17 +31,17 @@ Then on GitHub click **Compare & pull request**, describe what you changed and h
 
 | You want to change | Edit this | Notes |
 |---|---|---|
-| Run / undo / history logic used by both the app's `organize.py` and the CLI | `cli/fair_curate.py`, between `# >>> ENGINE` and `# <<< ENGINE` | Then run `python tools/sync_engine.py` so the app gets the same code. Never edit the engine inside the HTML by hand. |
-| Command-line scanning and file-type rules | `cli/fair_curate.py` (`guess`, `find_date`, `build_plan`) | Keep rules the same as the app's `guess()` in the HTML. |
+| Run / undo / history logic used by both the app's `organize.py` and the CLI | `tools/fair_curate.py`, between `# >>> ENGINE` and `# <<< ENGINE` | Then run `python instructor/sync_engine.py` so the app gets the same code. Never edit the engine inside the HTML by hand. |
+| Command-line scanning and file-type rules | `tools/fair_curate.py` (`guess`, `find_date`, `build_plan`) | Keep rules the same as the app's `guess()` in the HTML. |
 | App screens, interview, charts, file-type rules | `app/fair-folder-curator.html` | One self-contained file; open it in Chrome to test. |
 | Docs, test tasks | `README.md`, `TESTING.md`, `CHANGELOG.md` | Add a line to CHANGELOG under "Unreleased". |
 
 ## Test before you push
 
 ```bash
-python cli/fair_curate.py scan  test-folder --year 2025
-python cli/fair_curate.py apply test-folder test-clean --run --yes
-python cli/fair_curate.py undo  test-clean --yes                 # every file should come back
+python tools/fair_curate.py scan  test-folder --year 2025
+python tools/fair_curate.py apply test-folder test-clean --run --yes
+python tools/fair_curate.py undo  test-clean --yes                 # every file should come back
 ```
 
 For app changes: open the HTML, click **Load example folder**, go through all four steps, export the kit, and run its `organize.py` preview, `--apply`, `--undo`. Use a copy of your data, never the only copy.

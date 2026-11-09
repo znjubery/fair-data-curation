@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Copy the shared run/undo engine from cli/fair_curate.py into the organize.py template inside app/fair-folder-curator.html.
+"""Copy the shared run/undo engine from tools/fair_curate.py into the organize.py template inside app/fair-folder-curator.html.
 
-Run after editing the ENGINE block:  python tools/sync_engine.py
+Run after editing the ENGINE block:  python instructor/sync_engine.py
 """
 import os, re, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CLI = os.path.join(ROOT, "cli", "fair_curate.py")
+CLI = os.path.join(ROOT, "tools", "fair_curate.py")
 APP = os.path.join(ROOT, "app", "fair-folder-curator.html")
 A, B = "# >>> ENGINE", "# <<< ENGINE"
 

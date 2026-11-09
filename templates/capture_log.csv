@@ -1,0 +1,2 @@
+session,date,site,operator,platform,sensor,firmware,altitude_m,overlap_pct,rtk_base,calibration,weather,notes
+01,2026-06-20,AEA,<name>,<drone>,<LiDAR/camera model>,<version>,30,80/80,<base ID>,panel 20260620_AEA_panel.jpg,clear 24C wind 3 m/s,

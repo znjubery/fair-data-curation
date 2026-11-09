@@ -1,0 +1,4 @@
+source_id,target_id,link_type,rule,tolerance,confidence,created_by,created_date
+2026_AEA_R03_C12_rgb0714,2026_AEA_R03_C12_lidar0714,direct,same plot and time window,±2 days,1.0,<name>,2026-11-09
+2026_GH_pot17,2026_AEA_R03_C12,contextual,same genotype (B73),,0.6,<name>,2026-11-09
+2026_AEA,2026_MAR,semantic,same soil class (SSURGO map unit),,0.2,<name>,2026-11-09

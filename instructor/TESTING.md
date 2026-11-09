@@ -35,7 +35,7 @@ On a Windows PC, with `py` instead of `python`:
 
 ## Kibona: command line on Jetstream2 / Nova / Globus
 
-1. Copy `cli/fair_curate.py` to a Jetstream2 VM or Nova and pick a dataset that arrived by Globus (or a subset).
+1. Copy `tools/fair_curate.py` to a Jetstream2 VM or Nova and pick a dataset that arrived by Globus (or a subset).
 2. Run `scan` (with `--year` and `--site`), open the `.plan.csv`, change two `new_path` values, and `apply --plan file.plan.csv` (dry run, then `--run --yes`).
 3. Try `apply --plan curator_session.json` with a session file made in the HTML app for the same folder.
 4. Time it on a large folder (≥10,000 files or ≥100 GB) with and without `--checksum`, and report the times.
