@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MOSAIC Layer · internal</title>
+<style>
+:root{--red:#C8102E;--blue:#0060C0;--navy:#1B3A5C;--gray:#6E6259;--dark:#222;--t1:#DCE6F1;--t2:#E8F4F8;--t3:#D4EDDA;--t4:#F2F2F2;--pink:#FBEFF1}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Open Sans",Segoe UI,Arial,sans-serif;color:var(--dark);background:#fff}
+header{border-top:8px solid var(--red);padding:18px 28px 10px}
+header .kicker{color:var(--blue);font-weight:700;font-size:12px;letter-spacing:.04em}
+header h1{font-family:Merriweather,Georgia,serif;color:var(--red);margin:6px 0 4px;font-size:26px}
+header p{margin:0;color:var(--gray)}
+.wrap{display:flex;gap:24px;padding:12px 28px 40px;max-width:1300px}
+nav{width:250px;flex:none}
+nav ol{list-style:none;padding:0;margin:0;border-top:2px solid var(--blue)}
+nav li{padding:9px 10px;border-bottom:1px solid #e6e8eb;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:14px}
+nav li.active{background:var(--t1);font-weight:700;color:var(--navy)}
+nav li .badge{font-size:11px;color:#fff;background:#8C97A6;border-radius:10px;padding:1px 7px}
+nav li .badge.ok{background:#2e8540}
+.meter{margin:14px 0 6px;font-size:13px;color:var(--gray)}
+.bar{height:10px;background:var(--t4);border-radius:5px;overflow:hidden}
+.bar>div{height:100%;background:var(--red);width:0}
+.navbtns{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+main{flex:1;min-width:0}
+h2{font-family:Merriweather,Georgia,serif;color:var(--red);font-size:21px;margin:4px 0 2px;padding-bottom:8px;border-bottom:2px solid var(--blue)}
+.help{background:var(--t2);padding:10px 14px;margin:12px 0;color:var(--navy);font-size:14px;border-radius:4px}
+.field{margin:14px 0}
+.field label{display:block;font-weight:700;color:var(--navy);font-size:14px;margin-bottom:4px}
+.field .hint{font-size:12.5px;color:var(--gray);margin-top:3px}
+.req{color:var(--red)}
+.day{display:inline-block;font-size:10.5px;font-weight:700;color:#fff;background:var(--red);border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:1px}
+input[type=text],input[type=date],input[type=number],input[type=email],select,textarea{width:100%;padding:8px 10px;border:1px solid #c9ced6;border-radius:4px;font:inherit;font-size:14px}
+textarea{min-height:76px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);border-color:var(--blue)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+button{font:inherit;font-size:14px;padding:8px 14px;border-radius:4px;border:1px solid var(--navy);background:#fff;color:var(--navy);cursor:pointer}
+button.primary{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
+button.small{padding:4px 9px;font-size:12.5px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+.card{padding:14px;border-radius:5px;cursor:pointer;border:2px solid transparent;background:var(--t1)}
+.card:nth-child(3n+2){background:var(--t2)} .card:nth-child(3n){background:var(--t3)}
+.card.sel{border-color:var(--red)}
+.card b{color:var(--navy);display:block;margin-bottom:4px}
+.card span{font-size:13px;color:var(--gray)}
+table.grid{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+table.grid th{background:var(--navy);color:#fff;text-align:left;padding:6px}
+table.grid td{padding:4px;border-bottom:1px solid #eee;vertical-align:top}
+table.grid input,table.grid select{padding:5px 6px;font-size:13px}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin-top:12px}
+.tabs button{border-radius:4px 4px 0 0;border-bottom:none}
+.tabs button.on{background:var(--navy);color:#fff}
+pre{background:#F4F5F7;border:1px solid #e1e4e8;padding:12px;overflow:auto;max-height:460px;font-size:12.5px;margin:0}
+.checklist li{margin:4px 0;font-size:14px}
+.miss{color:var(--red)} .okc{color:#2e8540}
+.footer{display:flex;justify-content:space-between;margin-top:22px;padding-top:12px;border-top:1px solid #e6e8eb}
+.oneline{background:var(--pink);padding:10px 14px;border-radius:4px;margin-top:14px;font-size:14px}
+.oneline b{color:var(--red)}
+@media(max-width:900px){.wrap{flex-direction:column}nav{width:auto}.cards{grid-template-columns:1fr}.row,.row3{grid-template-columns:1fr}}
+</style>
+<style>.radio3{display:flex;gap:6px;flex-wrap:wrap}.radio3 label{font-weight:400;border:1px solid #c9ced6;border-radius:4px;padding:6px 8px;cursor:pointer;font-size:12.5px;flex:1;min-width:150px}.radio3 label.on{border-color:var(--red);background:var(--pink)}.score{font-size:40px;font-family:Merriweather,Georgia,serif;color:var(--red);font-weight:700}</style>
+</head><body>
+<header><div class="kicker">INTERNAL · PROPOSAL METHODS · NOT FOR PUBLIC REPO</div><h1>MOSAIC Layer</h1>
+<p>Adds the MOSAIC curation layers on top of a Study Card: ID backbone, typed links, lineage, harmonization, ingest QC, AI-readiness score, leakage-resistant splits, access tiers and release integrity.</p></header>
+<div class="wrap"><nav><ol id="steps"></ol>
+<div class="meter">AI-readiness: <b id="rs">0</b> / 18</div><div class="bar"><div id="barfill"></div></div>
+<div class="navbtns"><button onclick="saveP()">Save layer (.json)</button><button onclick="document.getElementById('lf').click()">Load saved layer</button><input type="file" id="lf" accept=".json" style="display:none" onchange="loadP(event)">
+<button onclick="if(confirm('Clear the layer?')){M=blankM();persist();render()}">Start over</button></div></nav>
+<main id="main"></main></div>
+<script>
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const csvCell=v=>{v=String(v??"");return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+function blankM(){return {cur:0,tab:"mosaic_layer.json",card:null,
+ ids:[{entity:"genotype",local:"",public_source:"GRIN / G2F / NCBI",resolved_pct:""},{entity:"plot",local:"YYYY_SITE_Rrr_Ccc",public_source:"",resolved_pct:""},{entity:"person",local:"",public_source:"ORCID",resolved_pct:""}],
+ links:[{source:"",target:"",link_type:"direct",rule:"",tolerance:"",confidence:"1.0"}],lineage:[],
+ harm:[{dim:"Units",applies:"",rule:"one unit per variable; original column kept"},{dim:"Depth intervals",applies:"",rule:"mass-preserving spline where bulk density exists; else labeled derived"},{dim:"Time",applies:"",rule:"align to growth stage / growing-degree days (Mesonet)"},{dim:"Space",applies:"",rule:"plot-to-pixel footprint mapping; footprint rule written"},{dim:"Weather",applies:"",rule:"attach Mesonet record per site and season"}],
+ qc:{},ready:{},readyEv:{},split:{policy:"",kin:"0.25",rule:"",audit:{}},access:{tier:"",embargo:"",dua:"",agg:"",care:"",rel_version:"v1.0",signed:"",container:"",prov:""}}}
+let M;try{M=JSON.parse(localStorage.getItem("mosaiclayer_v1"))||blankM()}catch(e){M=blankM()}
+function persist(){try{localStorage.setItem("mosaiclayer_v1",JSON.stringify(M))}catch(e){}}
+const C=()=>M.card||{type:"",f:{variables:[],sensors:[]},x:{}};
+const dsid=()=>{const f=C().f;return ((f.start||"YYYY").slice(0,4))+"_"+(f.site_code||"SITE")+"_"+(C().type||"dataset")};
+const LINK_PRESETS={tassel_uav:[{source:"this dataset: plant/tassel ID",target:"tassel handheld 3D: same tassel ID",link_type:"direct",rule:"same plant, same day",tolerance:"±1 day",confidence:"1.0"},{source:"plot ID",target:"field genotype table",link_type:"contextual",rule:"same genotype",tolerance:"",confidence:"0.6"}],
+ tassel_hand:[{source:"tassel ID",target:"tassel UAV 3D: same plant",link_type:"direct",rule:"same plant, same day",tolerance:"±1 day",confidence:"1.0"}],
+ hinalea:[{source:"ear ID",target:"field plot (harvest)",link_type:"contextual",rule:"same plot, harvest season",tolerance:"",confidence:"0.7"},{source:"ear ID → genotype",target:"genotype panel",link_type:"contextual",rule:"same genotype",tolerance:"",confidence:"0.6"}],
+ sorghum:[{source:"stalk ID",target:"field plot",link_type:"contextual",rule:"same plot and season",tolerance:"",confidence:"0.7"}],
+ par:[{source:"sensor array site/season",target:"canopy datasets at same site",link_type:"contextual",rule:"same site and season (calibration input)",tolerance:"",confidence:"0.5"},{source:"site",target:"other sites",link_type:"semantic",rule:"same climate zone",tolerance:"",confidence:"0.2"}],
+ lerobot:[{source:"object ID",target:"object catalog",link_type:"direct",rule:"same physical object",tolerance:"",confidence:"1.0"}]};
+const READY=[["meta","Metadata completeness",["no README","README only","README + data dictionary","all required MIAPPE/Croissant fields"]],
+ ["ids","Identifier linkage",["no IDs resolve","local IDs, inconsistent","local IDs consistent everywhere","every genotype resolves to GRIN/G2F/NCBI"]],
+ ["label","Label quality",["unchecked","spot-checked, not reported","sample verified","verified sample, error rate reported (≥95% precision)"]],
+ ["license","Training-compatible license",["none","'ask me'","custom / unclear","CC BY 4.0 / CC0 stated in metadata"]],
+ ["leak","Leakage risk",["random split, related genotypes","random split, noted","grouped split (site/season/object)","relatedness-aware split, audit passed"]],
+ ["loader","Loader availability",["files only","instructions","script, untested","one-call loader, tested by a labmate"]]];
+const STEPS=[{id:"load",title:"Load the Study Card"},{id:"ids",title:"Identifier backbone"},{id:"links",title:"Typed links"},{id:"lineage",title:"Lineage: observed / derived / simulated"},
+ {id:"harm",title:"Harmonization"},{id:"qc",title:"Ingest QC (quarantine vs flag)"},{id:"ready",title:"AI-readiness score"},{id:"split",title:"Splits and leakage audit"},{id:"access",title:"Access tier and release integrity"},{id:"export",title:"Review and download"}];
+const score=()=>READY.reduce((a,[k])=>a+(+M.ready[k]||0),0);
+function render(){document.getElementById("steps").innerHTML=STEPS.map((s,i)=>`<li class="${i===M.cur?"active":""}" onclick="go(${i})">${i+1}. ${s.title}</li>`).join("");
+ const sc=score();document.getElementById("rs").textContent=sc;document.getElementById("barfill").style.width=(100*sc/18)+"%";
+ const st=STEPS[M.cur];let h=`<h2>${M.cur+1}. ${st.title}</h2>`+window["s_"+st.id]();
+ h+=`<div class="footer"><button ${M.cur===0?"disabled":""} onclick="go(${M.cur-1})">← Back</button>${M.cur<STEPS.length-1?`<button class="primary" onclick="go(${M.cur+1})">Next →</button>`:""}</div>`;
+ document.getElementById("main").innerHTML=h}
+function go(i){M.cur=Math.max(0,Math.min(STEPS.length-1,i));persist();render();scrollTo(0,0)}
+function tbl(key,cols,phs,opts={}){const rows=M[key];return `<table class="grid"><tr>${cols.map(c=>`<th>${c}</th>`).join("")}<th></th></tr>${rows.map((r,i)=>`<tr>${cols.map((c,j)=>opts[c]?`<td><select onchange="M.${key}[${i}]['${c}']=this.value;persist()">${opts[c].map(o=>`<option ${r[c]===o?"selected":""}>${o}</option>`).join("")}</select></td>`:`<td><input type="text" value="${esc(r[c])}" placeholder="${esc(phs[j]||"")}" oninput="M.${key}[${i}]['${c}']=this.value;persist()"></td>`).join("")}<td><button class="small" onclick="M.${key}.splice(${i},1);persist();render()">✕</button></td></tr>`).join("")}</table><button class="small" style="margin-top:6px" onclick="M.${key}.push(Object.fromEntries(${JSON.stringify(cols)}.map(c=>[c,''])));persist();render()">+ Add row</button>`}
+const help=t=>`<div class="help">${t}</div>`;
+window.s_load=()=>help("Load the <b>progress file</b> saved from the Study Card Builder (<code>…_progress.json</code>). Variables, sensors and dataset type come in from it. The layer is saved separately.")+
+ `<button class="primary" onclick="document.getElementById('cf').click()">Load Study Card progress (.json)</button><input type="file" id="cf" accept=".json" style="display:none" onchange="loadCard(event)">`+
+ (M.card?`<div class="oneline" style="margin-top:14px"><b>Loaded:</b> ${esc(C().f.title||"(no title)")} · type ${esc(C().type)} · ${C().f.variables.filter(v=>v.column).length} variables · ${(C().f.sensors||[]).length} sensors</div>`:"<p>No study card loaded yet. You can still fill the layer by hand.</p>");
+function loadCard(ev){const fl=ev.target.files[0];if(!fl)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o.f)throw 0;M.card=o;
+ M.lineage=o.f.variables.filter(v=>v.column).map(v=>({variable:v.column,value_type:v.value_type,model_or_script:v.method||"",version_commit:"",settings:"",uncertainty:""}));
+ if(LINK_PRESETS[o.type]&&M.links.length<=1&&!M.links[0].source)M.links=JSON.parse(JSON.stringify(LINK_PRESETS[o.type]));persist();render()}catch(e){alert("Not a Study Card progress file.")}};r.readAsText(fl);ev.target.value=""}
+window.s_ids=()=>help("Every entity gets one persistent ID that resolves to a public record where one exists. Report the share of records that resolve.")+tbl("ids",["entity","local","public_source","resolved_pct"],["genotype / plot / sample / object / person","local ID pattern","GRIN, G2F, NCBI, IGSN, ORCID, ROR","e.g. 92%"]);
+window.s_links=()=>help("<b>direct</b> = same sample/plot <i>and</i> same time window · <b>contextual</b> = same genotype, site or season, not the sample · <b>semantic</b> = only a shared ontology term, soil class or climate zone. Every link stores the rule that made it and a confidence (0–1). State the time tolerance for direct links.")+
+ tbl("links",["source","target","link_type","rule","tolerance","confidence"],["record / dataset","record / dataset","","same plot, same day","±2 days","0–1"],{link_type:["direct","contextual","semantic"]});
+window.s_lineage=()=>help("Every value is observed, derived or simulated. Derived and simulated values carry the model or script, version/commit, settings and uncertainty that produced them.")+
+ (M.lineage.length?"":"<p>Load a study card to fill the variable list, or add rows.</p>")+tbl("lineage",["variable","value_type","model_or_script","version_commit","settings","uncertainty"],["","","height.py / APSIM","a1b2c3d / 7.10","CSF 0.5 m","± 2.1 cm RMSE"],{value_type:["observed","derived","simulated"]});
+window.s_harm=()=>help("Make sources comparable without hiding what changed. Mark each dimension yes / no / n/a and write the rule.")+tbl("harm",["dim","applies","rule"],["","",""],{applies:["","yes","no","n/a"]});
+const QC=[["schema","Schema: required columns present"],["units","Units consistent per variable"],["ranges","Values within physical ranges"],["dups","No duplicate files / records (checksum)"],["ids","IDs match across files, tables, metadata"],["prov","Provenance present for every derived value"],["lic","License stated and training-compatible"],["leak","No leakage between benchmark splits"],["shift","Distribution shift checked (flag only, never reject)"]];
+window.s_qc=()=>help("Quarantine (move to 99_review/) only for <b>schema, provenance, license, duplicate or split-leakage</b> failures. A new site, season or crop is <b>flagged</b> for steward review, not rejected. Use qc_report.md from make_manifest.py as evidence.")+
+ `<table class="grid"><tr><th>Check</th><th>Result</th><th>Action if failed</th></tr>${QC.map(([k,l])=>`<tr><td>${l}</td><td><select onchange="M.qc['${k}']=this.value;persist()">${["","pass","fail","n/a"].map(o=>`<option ${M.qc[k]===o?"selected":""}>${o}</option>`).join("")}</select></td><td>${k==="shift"?"flag for steward review":["schema","prov","lic","dups","leak"].includes(k)?"quarantine":"fix, re-run"}</td></tr>`).join("")}</table>`;
+window.s_ready=()=>help("Six dimensions an AI pipeline needs, each 0–3 by an explicit rule. Total = sum (0–18). Write one line of evidence for each.")+
+ READY.map(([k,l,lv])=>`<div class="field"><label>${l}: <span style="color:var(--red)">${M.ready[k]??"–"}</span></label><div class="radio3">${lv.map((t,i)=>`<label class="${+M.ready[k]===i&&M.ready[k]!==undefined?"on":""}" onclick="M.ready['${k}']=${i};persist();render()"><b>${i}</b> · ${esc(t)}</label>`).join("")}</div><input type="text" style="margin-top:6px" placeholder="evidence" value="${esc(M.readyEv[k]||"")}" oninput="M.readyEv['${k}']=this.value;persist()"></div>`).join("")+
+ `<div class="oneline"><span class="score">${score()}</span> / 18 · ${score()>=15?"ready for an ML release":score()>=10?"usable with care":"not ready: fix the lowest dimension first"}</div>`;
+const AUD=[["pre","Pretraining overlap checked (public models may have seen these images)"],["dup","Near-duplicate images/records across splits removed"],["kin","Cross-split kinship below threshold"],["season","No shared seasons across train/test (if leave-season-out)"],["site","No shared sites across train/test (if leave-site-out)"],["obj","No shared objects across train/test (robot data)"]];
+window.s_split=()=>help("Random splits leak across related genotypes, shared seasons, sites and objects. Pick the policy, write the rule, save splits as ID lists, and publish the audit with every release.")+
+ `<div class="field"><label>Split policy</label><select onchange="M.split.policy=this.value;persist()">${["","relatedness-aware genotype blocking","leave-site-out","leave-season-out","leave-object-out","satellite-for-UAV substitution","leave-species-out","combined (write below)"].map(o=>`<option ${M.split.policy===o?"selected":""}>${o}</option>`).join("")}</select></div>
+ <div class="row"><div class="field"><label>Max kinship test↔train</label><input type="text" value="${esc(M.split.kin)}" oninput="M.split.kin=this.value;persist()"></div><div class="field"><label>Rule in words</label><input type="text" value="${esc(M.split.rule)}" placeholder="no test genotype > 0.25 kinship to training; hold out 2026 season" oninput="M.split.rule=this.value;persist()"></div></div>
+ <div class="field"><label>Leakage audit</label>${AUD.map(([k,l])=>`<div><label style="font-weight:400"><input type="checkbox" ${M.split.audit[k]?"checked":""} onchange="M.split.audit['${k}']=this.checked;persist()"> ${l}</label></div>`).join("")}</div>`;
+window.s_access=()=>{const a=M.access;const fld=(k,l,ph)=>`<div class="field"><label>${l}</label><input type="text" value="${esc(a[k])}" placeholder="${esc(ph||"")}" oninput="M.access['${k}']=this.value;persist()"></div>`;
+ return help("Open by default. <b>Tier 0</b>: CC BY 4.0 data, permissive code license. <b>Tier 1</b>: protected germplasm / pre-publication, embargo ≤ 12 months, login + click-through data-use agreement. <b>Tier 2</b>: sensitive sites, grower farm data (consent, aggregate ≥ 5 farms), third-party restricted, Indigenous data under CARE; steward approval, role-based access, audit log.")+
+ `<div class="field"><label>Tier</label><select onchange="M.access.tier=this.value;persist()">${["","0 open","1 embargo","2 restricted"].map(o=>`<option ${a.tier===o?"selected":""}>${o}</option>`).join("")}</select></div>`+
+ `<div class="row">${fld("embargo","Embargo end (≤12 months)","YYYY-MM-DD")}${fld("dua","Data-use agreement","click-through / signed / n/a")}</div><div class="row">${fld("agg","Aggregation rule (farm data)","≥ 5 farms")}${fld("care","CARE / consent notes","n/a")}</div>`+
+ `<h3 style="color:var(--navy);font-size:16px">Release integrity</h3><div class="row">${fld("rel_version","Release version","v1.0")}${fld("signed","Signed, hash-verified manifest","MANIFEST.sha256 signed by steward (gpg / minisign)")}</div><div class="row">${fld("container","Container / environment pinned to commit","ghcr.io/... @ a1b2c3d")}${fld("prov","Lineage file","prov.jsonld (PROV-O)")}</div>`};
+function genLayer(){return JSON.stringify({dataset_id:dsid(),title:C().f.title||"",layer_version:"0.1",identifier_backbone:M.ids,typed_links:M.links,lineage:M.lineage,harmonization:M.harm,ingest_qc:M.qc,
+ ai_readiness:{scores:M.ready,evidence:M.readyEv,total:score(),max:18},split_policy:M.split,access_and_release:M.access},null,2)}
+const toCSV=(rows,cols)=>[cols.join(",")].concat(rows.map(r=>cols.map(c=>csvCell(r[c])).join(","))).join("\n")+"\n";
+function genReady(){return `# AI-readiness score: ${dsid()}\n\n| Dimension | Score (0–3) | Evidence |\n|---|---|---|\n${READY.map(([k,l])=>`| ${l} | ${M.ready[k]??""} | ${M.readyEv[k]||""} |`).join("\n")}\n| **Total** | **${score()} / 18** | |\n`}
+function genSplit(){const s=M.split;return `# Split policy and leakage audit: ${dsid()}\n\n- Policy: ${s.policy}\n- Max kinship test↔train: ${s.kin}\n- Rule: ${s.rule}\n- Splits saved as ID lists in splits/train_ids.txt, val_ids.txt, test_ids.txt\n\n## Audit\n${AUD.map(([k,l])=>`- [${s.audit[k]?"x":" "}] ${l}`).join("\n")}\n`}
+function genHarm(){return `# Harmonization: ${dsid()}\n\n| Dimension | Applies | Rule |\n|---|---|---|\n${M.harm.map(h=>`| ${h.dim} | ${h.applies} | ${h.rule} |`).join("\n")}\n\n## Ingest QC\n| Check | Result |\n|---|---|\n${QC.map(([k,l])=>`| ${l} | ${M.qc[k]||""} |`).join("\n")}\n`}
+function genRelease(){const a=M.access;return `# Access tier and release integrity: ${dsid()}\n\n- Tier: ${a.tier}\n- Embargo end: ${a.embargo}\n- Data-use agreement: ${a.dua}\n- Aggregation rule: ${a.agg}\n- CARE / consent: ${a.care}\n\n## Release\n- Version: ${a.rel_version}\n- Manifest: ${a.signed}\n- Container / commit: ${a.container}\n- Lineage: ${a.prov}\n- Every value labeled observed / derived / simulated (lineage.csv)\n`}
+function genProv(){const id=dsid();const g=[{"@id":"ex:"+id,"@type":"prov:Entity","rdfs:label":C().f.title||id}];
+ M.lineage.filter(l=>l.value_type!=="observed").forEach((l,i)=>{g.push({"@id":"ex:act"+i,"@type":"prov:Activity","rdfs:label":l.model_or_script,"ex:version":l.version_commit,"ex:settings":l.settings,"prov:used":{"@id":"ex:"+id+"/raw"}});
+  g.push({"@id":"ex:"+id+"/"+l.variable,"@type":"prov:Entity","ex:valueType":l.value_type,"ex:uncertainty":l.uncertainty,"prov:wasGeneratedBy":{"@id":"ex:act"+i},"prov:wasDerivedFrom":{"@id":"ex:"+id+"/raw"}})});
+ return JSON.stringify({"@context":{"prov":"http://www.w3.org/ns/prov#","rdfs":"http://www.w3.org/2000/01/rdf-schema#","ex":"https://example.org/mosaic/"},"@graph":g},null,2)}
+const OUT={"mosaic_layer.json":genLayer,"links.csv":()=>toCSV(M.links,["source","target","link_type","rule","tolerance","confidence"]),"ids_backbone.csv":()=>toCSV(M.ids,["entity","local","public_source","resolved_pct"]),
+ "lineage.csv":()=>toCSV(M.lineage,["variable","value_type","model_or_script","version_commit","settings","uncertainty"]),"readiness.md":genReady,"split_policy.md":genSplit,"harmonization_qc.md":genHarm,"access_release.md":genRelease,"prov.jsonld":genProv};
+window.s_export=()=>`<div class="help">Put these in <code>01_metadata/mosaic/</code>. They extend, and do not replace, the Study Card files. Keep them out of public repos until the PI approves.</div>
+ <div style="display:flex;gap:8px;margin:10px 0"><button class="primary" onclick="dlAll()">Download all</button><button onclick="dl(M.tab,OUT[M.tab]())">Download this file</button></div>
+ <div class="tabs">${Object.keys(OUT).map(k=>`<button class="${M.tab===k?"on":""}" onclick="M.tab='${k}';persist();render()">${k}</button>`).join("")}</div><pre>${esc(OUT[M.tab]())}</pre>`;
+function dl(n,t){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([t],{type:"text/plain"}));a.download=n;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+function dlAll(){Object.keys(OUT).forEach((k,i)=>setTimeout(()=>dl(k,OUT[k]()),i*350))}
+function saveP(){dl(dsid()+"_mosaic_layer_progress.json",JSON.stringify(M,null,2))}
+function loadP(ev){const fl=ev.target.files[0];if(!fl)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o.links)throw 0;M=Object.assign(blankM(),o);persist();render()}catch(e){alert("Not a MOSAIC layer file.")}};r.readAsText(fl);ev.target.value=""}
+render();
+</script></body></html>
